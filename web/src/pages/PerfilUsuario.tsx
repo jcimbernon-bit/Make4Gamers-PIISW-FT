@@ -1,15 +1,54 @@
 import { useState, useEffect } from 'react';
 
-
+import { 
+  getGlobalTier, 
+  calculateLazyGlobalScore,
+  getGameControllerData,
+  getGlobalControllerData 
+} from '../features/progression/services/progression.service';
+import GlobalRankEmblem from '../features/progression/components/GlobalRankEmblem';
+import { getTierForScore } from '../features/progression/services/progression.service';
 import { supabase } from '../supabase';
 import { removeFriend } from '../features/chat/services/friend.service';
 import { useParams, Link, useNavigate } from 'react-router-dom'; 
 
-import { User as UserIcon, Activity, ArrowLeft, Trophy, Calendar, Gamepad2, Check, AlertCircle, AlertTriangle, Medal, Flag } from 'lucide-react';
+import { User as UserIcon, Activity, ArrowLeft, Trophy, Calendar, Gamepad2, Check, AlertCircle, AlertTriangle, Medal, Flag, Swords, Flame, Zap, Star, Save } from 'lucide-react';
+import UserAvatar from '../shared/components/UserAvatar';
 import { getAccountHighScores } from '../features/account/services/account.service';
-//import { reportUser } from '../../../packages/api/src/services/reports.service';
+import { reportUser } from '../../../packages/api/src/services/reports.service';
+import { type Tier } from '../features/progression/config/progression.config';
+import { getUserAchievements, 
+  checkMatchCountAchievements, checkScoreAchievements, checkSocialAchievements } from '../features/achievements/services/achievements.service';
+
+const IconMap: Record<string, any> = {
+  Gamepad2,
+  Swords,
+  Flame,
+  Zap,
+  Trophy,
+  Medal,
+  Star
+}; 
 
 
+const getControllerData = (tier: string) => {
+  const basePath = '/assets/emblems';
+  
+  switch(tier) {
+    case 'Iniciado': 
+      return { name: 'Rango Iniciado', image: `${basePath}/nintendoEmblem.png`, color: 'text-slate-400', glow: 'shadow-slate-500/40' };
+    case 'Amateur': 
+      return { name: 'Rango Amateur', image: `${basePath}/ps1Emblem.png`, color: 'text-orange-400', glow: 'shadow-orange-500/40' };
+    case 'Profesional': 
+      return { name: 'Rango Profesional', image: `${basePath}/ps3Emblem.png`, color: 'text-slate-200', glow: 'shadow-slate-300/50' };
+    case 'Veterano': 
+      return { name: 'Rango Veterano', image: `${basePath}/ps4Emblem.png`, color: 'text-yellow-400', glow: 'shadow-yellow-500/50' };
+    case 'Elite': 
+      return { name: 'Rango Élite', image: `${basePath}/ps5Emblem.png`, color: 'text-fuchsia-400', glow: 'shadow-fuchsia-500/60' };
+    default: 
+      return { name: 'Iniciado', image: `${basePath}/nintendoEmblem.png`, color: 'text-slate-500', glow: 'shadow-slate-500/20' };
+  }
+};
 export default function PerfilUsuario() {
   const { username } = useParams(); 
   const [profile, setProfile] = useState<any>(null);
@@ -21,17 +60,21 @@ export default function PerfilUsuario() {
   const [deleteSuccessMsg, setDeleteSuccessMsg] = useState('');
   const [deleteErrorMsg, setDeleteErrorMsg] = useState('');
   const navigate = useNavigate();
-
+  const [userAchievements, setUserAchievements] = useState<any[]>([]);
+  const globalScore = calculateLazyGlobalScore(highScores || []);
+  const globalTier = getGlobalTier(globalScore);
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportReason, setReportReason] = useState('');
   const [reportDetails, setReportDetails] = useState('');
   const [isSubmittingReport, setIsSubmittingReport] = useState(false);
   const [reportFeedback, setReportFeedback] = useState<{type: 'success' | 'error', text: string} | null>(null);
+  const [testScore, setTestScore] = useState(globalScore);
+ 
 
-  useEffect(() => {
+useEffect(() => {
     const fetchProfileAndActivity = async () => {
       try {
-        //Buscar perfil del usuario
+       
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('*')
@@ -41,13 +84,16 @@ export default function PerfilUsuario() {
         if (profileError) throw profileError;
         setProfile(profileData);
 
+       
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
             setCurrentUserId(user.id);
         }
 
-        //Buscar su actividad reciente (ultimas 5)
+       
         if (profileData) {
+          
+         
           const { data: activityData, error: activityError } = await supabase
             .from('scores')
             .select(`
@@ -63,11 +109,18 @@ export default function PerfilUsuario() {
           if (!activityError && activityData) {
             setRecentActivity(activityData);
           }
-        }
 
-        
+         
+          await checkMatchCountAchievements(profileData.id);
+          await checkScoreAchievements(profileData.id);
+          await checkSocialAchievements(profileData.id);
+          const achievementsData = await getUserAchievements(profileData.id);
+          setUserAchievements(achievementsData);
+
+       
           const scores = await getAccountHighScores(profileData.id);
           setHighScores(scores);
+        }
 
       } catch (error) {
         console.error("Error cargando el perfil público:", error);
@@ -80,8 +133,7 @@ export default function PerfilUsuario() {
       fetchProfileAndActivity();
     }
   }, [username]);
-
-  //Funcion auxiliar para formatear la fecha
+ 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return new Intl.DateTimeFormat('es-ES', { 
@@ -91,6 +143,7 @@ export default function PerfilUsuario() {
 
   if (loading) {
     return (
+
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
       </div>
@@ -156,7 +209,7 @@ export default function PerfilUsuario() {
 
     if (result.success) {
       setReportFeedback({ type: 'success', text: 'Reporte enviado. Gracias por ayudar a mantener la comunidad segura.' });
-      // Cerramos el modal después de 3 segundos
+   
       setTimeout(() => {
         setShowReportModal(false);
         setReportFeedback(null);
@@ -169,8 +222,10 @@ export default function PerfilUsuario() {
   };
 
   return (
+
     <div className="min-h-screen bg-slate-950 text-slate-300 py-10 px-4">
       <div className="max-w-4xl mx-auto space-y-8">
+
         
         {/* Boton volver */}
         <Link to="/cuenta" className="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
@@ -181,18 +236,44 @@ export default function PerfilUsuario() {
           <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl -mr-20 -mt-20"></div>
           
           <div className="relative flex flex-col md:flex-row items-center gap-6">
-            <div className="w-24 h-24 bg-slate-800 border-2 border-indigo-500 rounded-full flex items-center justify-center overflow-hidden shadow-lg shrink-0">
-              {profile.avatar_url ? (
-                <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
-              ) : (
-                <UserIcon size={40} className="text-indigo-400" />
-              )}
+            <div className="relative group">
+              <GlobalRankEmblem score={globalScore} size="xl">
+          
+                <UserAvatar src={profile?.avatar_url} name={profile?.username} className="w-full h-full" size={128}/>
+              </GlobalRankEmblem>
             </div>
  
             <div className="text-center md:text-left flex-1">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                  <h1 className="text-3xl font-bold text-white">{profile?.username}</h1>
+                  <div className="flex items-center gap-2 mb-1 justify-center md:justify-start">
+                    <h1 className="text-3xl font-bold text-white">{profile.username}</h1>
+                    
+                    {/* Emblema Premium */}
+                    {profile?.subscription_tier === 'premium' && (
+                      <span title="Usuario Premium" className="flex items-center cursor-help mt-1">
+                        <Save 
+                          size={22} 
+                          className="text-yellow-500 fill-yellow-500/20 drop-shadow-[0_0_10px_rgba(234,179,8,0.6)]" 
+                        />
+                      </span>
+                    )}
+                  </div>
+               
+                  <div className="flex flex-wrap justify-center md:justify-start items-center gap-3 mt-2">
+      
+                    <div className={`flex items-center gap-2 px-3 py-1 rounded-full border shadow-sm ${getGlobalControllerData(globalTier).color} border-current bg-slate-800/50`}>
+                        <Star size={14} fill="currentColor" />
+                        <span className="text-xs font-black uppercase tracking-widest">
+                          Rango {globalTier}
+                        </span>
+                    </div>
+                    
+                    <div className="text-slate-500 text-xs font-bold uppercase tracking-tighter">
+                      {globalScore} Puntos de Plataforma
+                    </div>
+                  </div>
+                  
                   
                
                   {currentUserId && currentUserId !== profile?.id && (
@@ -246,47 +327,118 @@ export default function PerfilUsuario() {
 
   
         {highScores.length > 0 && (
-          <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 shadow-xl relative overflow-hidden">
-            {/* Brillo de fondo sutil */}
-            <div className="absolute top-0 left-0 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl -ml-20 -mt-20 pointer-events-none"></div>
-            
-            <h3 className="text-xl font-semibold text-white mb-6 flex items-center gap-2 relative z-10">
-              <Medal className="text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]" /> 
-              Salón de la Fama
+          <div className="mt-8">
+            <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
+              <Trophy className="text-yellow-500" size={24} />
+              Récords de Temporada
             </h3>
             
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 relative z-10">
-              {highScores.map((record, index) => (
-                <div 
-                  key={`record-${record.id}`} 
-                  className="p-5 bg-gradient-to-br from-slate-800/80 to-slate-800/30 border border-slate-700/50 hover:border-amber-500/40 rounded-2xl relative overflow-hidden group transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_20px_-6px_rgba(245,158,11,0.15)]"
-                >
-                  {/* Número de Top y Medalla de fondo */}
-                  <div className="absolute -right-4 -bottom-4 p-3 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-500">
-                    <Medal size={90} className="text-amber-400" />
-                  </div>
-                  
-                  <div className="relative z-10">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="flex items-center justify-center w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 text-xs font-bold border border-amber-500/20">
-                        {index + 1}
-                      </span>
-                      <p className="text-sm text-slate-300 font-medium truncate">
-                        {record.displayTitle}
-                      </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {highScores.map((record, index) => {
+      
+                const tierName = getTierForScore(record.displayTitle, record.score);
+                const controller = getGameControllerData(tierName);
+
+                return (
+                  <div 
+                    key={`record-${index}`} 
+                    className="group relative bg-gradient-to-b from-slate-800/40 to-slate-900/90 border border-slate-700/50 rounded-3xl p-1 transition-all duration-500 hover:border-indigo-500/50 hover:shadow-[0_0_30px_rgba(79,70,229,0.15)]"
+                  >
+                    <div className="bg-slate-900/40 rounded-[22px] p-6 h-full flex flex-col items-center">
+                      
+                      {/* Cabecera de la carta */}
+                      <div className="w-full flex justify-between items-center mb-4">
+                        <span className="px-2 py-1 bg-slate-800 rounded-lg text-[10px] font-bold text-slate-500 uppercase tracking-tighter">
+                          TOP {index + 1}
+                        </span>
+                        <span className={`text-[10px] font-black uppercase tracking-widest ${controller.color}`}>
+                          {controller.name}
+                        </span>
+                      </div>
+
+                     
+                      <div className="relative w-full h-40 flex items-center justify-center mb-6">
+                   
+                        <div className={`absolute w-24 h-24 rounded-full blur-[40px] opacity-20 ${controller.glow} bg-current ${controller.color}`}></div>
+                        
+                        <img 
+                          src={controller.image} 
+                          alt={controller.name}
+                          className="relative z-10 h-full object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)] group-hover:scale-110 group-hover:-rotate-3 transition-all duration-500"
+                        />
+                      </div>
+
+                      {/* Info de puntuación */}
+                      <div className="text-center w-full mt-auto">
+                        <h4 className="text-slate-400 text-xs font-medium mb-1 truncate px-2">
+                          {record.displayTitle}
+                        </h4>
+                        <div className="flex items-baseline justify-center gap-1">
+                          <span className="text-4xl font-black text-white tracking-tighter">
+                            {record.score}
+                          </span>
+                          <span className="text-indigo-400 text-xs font-bold uppercase">PTS</span>
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-500 tracking-tight">
-                      {record.score}
-                    </p>
-                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">
-                      Puntuación Máxima
-                    </p>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
+
+             
+<div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 mt-6 shadow-xl">
+  <div className="flex items-center gap-3 mb-6 border-b border-slate-800 pb-4">
+    <Medal className="text-amber-400" size={24} />
+    <h3 className="text-xl font-bold text-white">Emblemas Obtenidos</h3>
+    <span className="bg-indigo-600 text-white text-xs font-bold px-2.5 py-1 rounded-full ml-auto">
+      {userAchievements.length}
+    </span>
+  </div>
+
+  {userAchievements.length === 0 ? (
+    <p className="text-slate-500 text-sm text-center py-6">
+      Aún no ha conseguido ningún emblema. ¡A jugar!
+    </p>
+  ) : (
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {userAchievements.map((item) => {
+        
+        
+        let badgeData = item.achievement || item.achievements || item;
+        
+        
+        if (Array.isArray(badgeData)) {
+          badgeData = badgeData[0];
+        }
+       
+        
+        const IconComponent = IconMap[badgeData?.badge_icon] || Star;
+        
+        return (
+          <div 
+            key={item.id} 
+            className="flex flex-col items-center justify-center bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-indigo-500/50 rounded-xl p-4 transition-all group"
+            title={badgeData?.description}
+          >
+            <div className="w-14 h-14 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 text-indigo-400 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+              <IconComponent size={28} />
+            </div>
+            <h4 className="text-white font-bold text-sm text-center mb-1">
+              {badgeData?.title || 'Emblema'}
+            </h4>
+            <p className="text-slate-400 text-[10px] text-center line-clamp-2">
+              {badgeData?.description}
+            </p>
+          </div>
+        );
+      })}
+    </div>
+  )}
+</div>
+      
 
         {/* Actividad reciente */}
         <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl">
@@ -324,7 +476,8 @@ export default function PerfilUsuario() {
         </div>
 
       </div>
-      
+
+
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-sm shadow-2xl">

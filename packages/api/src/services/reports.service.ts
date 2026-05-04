@@ -1,15 +1,27 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
+  findGameReportsByReporter,
+  findReportGamesByIds,
+  findReportUsersByIds,
   findGamesToReportByTitle,
+  findUserReportsByReporter,
   findUsersToReportByUsername,
   insertGameReport,
   insertUserReport,
+  type GameReportRow,
   type ReportableGameRow,
   type ReportableUserRow,
+  type UserReportRow,
 } from "../repositories/reports.repository";
 
 export type ReportableUser = ReportableUserRow;
 export type ReportableGame = ReportableGameRow;
+export type UserReport = UserReportRow & {
+  reportedUser: ReportableUser | null;
+};
+export type GameReport = GameReportRow & {
+  game: ReportableGame | null;
+};
 
 export async function reportUser(
   client: SupabaseClient,
@@ -100,4 +112,42 @@ export async function searchReportableGames(
     titleQuery: trimmedQuery,
     limit: 10,
   });
+}
+
+export async function getUserReports(
+  client: SupabaseClient,
+  reporterId: string,
+): Promise<UserReport[]> {
+  if (!reporterId) {
+    return [];
+  }
+
+  const reports = await findUserReportsByReporter(client, reporterId);
+  const userIds = [...new Set(reports.map((report) => report.reported_id))];
+  const users = await findReportUsersByIds(client, userIds);
+  const usersById = new Map(users.map((user) => [user.id, user]));
+
+  return reports.map((report) => ({
+    ...report,
+    reportedUser: usersById.get(report.reported_id) ?? null,
+  }));
+}
+
+export async function getUserGameReports(
+  client: SupabaseClient,
+  reporterId: string,
+): Promise<GameReport[]> {
+  if (!reporterId) {
+    return [];
+  }
+
+  const reports = await findGameReportsByReporter(client, reporterId);
+  const gameIds = [...new Set(reports.map((report) => report.game_id))];
+  const games = await findReportGamesByIds(client, gameIds);
+  const gamesById = new Map(games.map((game) => [game.id, game]));
+
+  return reports.map((report) => ({
+    ...report,
+    game: gamesById.get(report.game_id) ?? null,
+  }));
 }

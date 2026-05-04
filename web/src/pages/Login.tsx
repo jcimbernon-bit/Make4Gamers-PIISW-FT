@@ -65,6 +65,16 @@ export default function Login() {
       }
 
       if (data.user) {
+        const pendingRedirectPath = localStorage.getItem('post_auth_redirect_path');
+        const pendingSection = localStorage.getItem('post_auth_account_section');
+
+        if (pendingRedirectPath === '/cuenta' && pendingSection === 'payments') {
+          navigate('/cuenta', { state: { initialSection: 'payments' } });
+          localStorage.removeItem('post_auth_redirect_path');
+          localStorage.removeItem('post_auth_account_section');
+          return;
+        }
+
         navigate("/"); //Ruta de exito
       }
     } catch (err) {

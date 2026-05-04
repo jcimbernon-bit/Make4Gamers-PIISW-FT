@@ -137,7 +137,7 @@ export default function SeoManager() {
 
     const title = t(rule.titleKey, { defaultValue: SITE_NAME });
     const description = t(rule.descriptionKey, {
-      defaultValue: "Make4Gamers platform for games, ranking, and social features.",
+      defaultValue: "Made4Gamers platform for games, ranking, and social features.",
     });
 
     const canonicalUrl = `${SITE_URL}${pathname}`;

@@ -3,6 +3,6 @@ import { supabase } from "../../../supabase";
 
 export type { Game };
 
-export async function getGames(): Promise<Game[]> {
-  return getGamesFromApi(supabase);
+export async function getGames(isPremium: boolean = false): Promise<Game[]> {
+  return getGamesFromApi(supabase, isPremium);
 }

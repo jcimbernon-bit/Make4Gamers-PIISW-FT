@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { slots } from '../constants/Slots'
 import Timeline from '../components/TimeLine'
 import { useNavigate } from "react-router-dom";
+import SubscriptionPlans from "../components/SubscriptionPlans";
 
 export default function PublicLanding() {
   const { t } = useTranslation();
@@ -124,7 +125,7 @@ export default function PublicLanding() {
 
       <div className="mx-auto my-12 h-px w-full max-w-6xl bg-gradient-to-r from-transparent via-violet-400/60 to-transparent shadow-[0_0_12px_rgba(167,139,250,0.35)]" />
 
-
+      <SubscriptionPlans />
 
     </>
 

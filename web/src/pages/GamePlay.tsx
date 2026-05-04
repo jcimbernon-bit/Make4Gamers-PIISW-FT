@@ -11,8 +11,11 @@ import GameViewport from "../features/gameplay/components/GameViewport";
 import GameplaySidebar from "../features/gameplay/components/GameplaySidebar";
 import AgeGuard from "../features/chat/components/AgeGuard";
 import PlayersBar from "../features/gameplay/components/PlayersBar";
-import { useActiveMatch } from "../features/gameplay/hooks/useActiveMatch";
+import RulesReminderModal from "../features/gameplay/components/RulesReminderModal";
+import { useActiveMatch, type MatchPlayer } from "../features/gameplay/hooks/useActiveMatch";
 import { useMatchMovements } from "../features/gameplay/hooks/useMatchMovements";
+import { useLastPlayed } from "../features/gameplay/hooks/useLastPlayed";
+
 
 export default function Gameplay() {
   const { id } = useParams<{ id: string }>();
@@ -32,13 +35,45 @@ export default function Gameplay() {
   const [sessionTimerEndsAtMs, setSessionTimerEndsAtMs] = useState<number | null>(null);
   const [sessionTimerSecondsRemaining, setSessionTimerSecondsRemaining] = useState<number | null>(null);
   const [startingSession, setStartingSession] = useState<boolean>(false);
-  // matchId que el juego comunica via postMessage cuando lo tenga disponible
+
   const [iframeMatchId, setIframeMatchId] = useState<string | null>(null);
 
   const { match, loading: matchLoading } = useActiveMatch(id ?? null, userId);
+  const lastPlayedStatus = useLastPlayed(userId, id ?? null);
+  const [rulesReminderDismissed, setRulesReminderDismissed] = useState(false);
+  const showRulesReminder =
+    !rulesReminderDismissed &&
+    !timerActive &&
+    (lastPlayedStatus === "never" || lastPlayedStatus === "long_ago");
   const matchId = match?.id ?? iframeMatchId;
   const { movements } = useMatchMovements(matchId, userId);
   const lastMovedPlayerId = movements.at(-1)?.player_id ?? null;
+
+  const [extraPlayers, setExtraPlayers] = useState<MatchPlayer[]>([]);
+
+  useEffect(() => {
+    const knownIds = new Set((match?.players ?? []).map((p) => p.id));
+    const extraIds = [...new Set(movements.map((m) => m.player_id))].filter(
+      (pid) => !knownIds.has(pid),
+    );
+    if (!extraIds.length) {
+      setExtraPlayers([]);
+      return;
+    }
+    supabase
+      .from("profiles")
+      .select("id, username, avatar_url")
+      .in("id", extraIds)
+      .then(({ data }) => {
+        if (data) setExtraPlayers(data as MatchPlayer[]);
+      });
+  }, [movements, match]);
+
+  const allPlayers = useMemo(() => {
+    const base = match?.players ?? [];
+    const knownIds = new Set(base.map((p) => p.id));
+    return [...base, ...extraPlayers.filter((p) => !knownIds.has(p.id))];
+  }, [match, extraPlayers]);
 
 
   const [edadMinima, setEdadMinima] = useState<number>(3);
@@ -107,7 +142,7 @@ export default function Gameplay() {
       case "custom": {
         const minutes = Math.floor(Number(customMinutes));
         if (!Number.isFinite(minutes) || minutes <= 0) return null;
-        // Límite razonable para evitar turnos demasiado largos.
+        
         if (minutes > 180) return null;
         return minutes * 60;
       }
@@ -127,8 +162,6 @@ export default function Gameplay() {
     return url.toString();
   }, [game, id, playerName]);
 
-
-  // Escucha postMessage del iframe — cuando el juego devuelva el match_id lo capturamos
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
       const msg = event.data;
@@ -239,8 +272,11 @@ export default function Gameplay() {
 
   return (
     <AgeGuard edadMinima={edadMinima}>
-    <div className="min-h-screen bg-slate-950 text-white">
-      <div className="border-b border-slate-800">
+    <div className="min-h-screen bg-slate-950 bg-[radial-gradient(ellipse_80%_40%_at_50%_0%,rgba(99,102,241,0.07),transparent)] text-white">
+      {/* Header */}
+      <div className="sticky top-0 z-20 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md">
+        {/* Línea de acento superior */}
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent" />
         <div className="mx-auto w-full max-w-[1200px] px-8 lg:px-14 py-4 flex items-center justify-between">
           <div className="max-w-[70%]">
             <h1 className="text-xl font-semibold leading-tight">{game.title}</h1>
@@ -261,30 +297,54 @@ export default function Gameplay() {
                 },
               })
             }
-            className="shrink-0 px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-sm font-medium"
+            className="shrink-0 px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-sm font-medium transition-colors"
           >
             {t("gameplay.rules")}
           </button>
         </div>
       </div>
 
-      <div className="mt-6 mb-6">
+      <div className="mt-6 mb-8">
         <div className="mx-auto w-full max-w-[1200px] px-8 lg:px-14">
-          {/* Barra de jugadores — visible cuando hay partida activa */}
+          {/* Contenedor que iguala el ancho de PlayersBar al del grid */}
+          <div className="w-full lg:w-fit lg:mx-auto flex flex-col gap-3">
+
           {(match || matchLoading) && (
             <PlayersBar
-              players={match?.players ?? []}
+              players={allPlayers}
               currentUserId={userId}
               lastMovedPlayerId={lastMovedPlayerId}
               loading={matchLoading}
             />
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-[800px_280px] gap-4 justify-center items-stretch">
+          <div className="grid grid-cols-1 lg:grid-cols-[800px_320px] gap-4 items-stretch">
             <section className="relative h-[600px] w-full max-w-[800px] rounded-xl overflow-hidden bg-black border border-indigo-500/50 shadow-xl shadow-indigo-500/10 transition-all duration-300">
               {timerActive ? <GameViewport src={finalGameUrl} title={`game-${game.id}`} ratio="4:3" /> : null}
 
-              {!timerActive ? (
+             
+              {showRulesReminder && game && (
+                <RulesReminderModal
+                  gameId={game.id}
+                  gameTitle={game.title}
+                  rulesUrl={game.manual_url}
+                  status={lastPlayedStatus}
+                  onDismiss={() => setRulesReminderDismissed(true)}
+                  onGoToRules={() =>
+                    navigate(`/juegos/${game.id}/reglas`, {
+                      state: {
+                        game: {
+                          id: game.id,
+                          title: game.title,
+                          rules_markdown_url: game.manual_url,
+                        },
+                      },
+                    })
+                  }
+                />
+              )}
+
+              {!timerActive && !showRulesReminder ? (
                 <div className="absolute inset-0 z-20 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-6">
                   <div className="w-full max-w-md bg-slate-900/90 border border-slate-800 rounded-xl p-5 shadow-xl shadow-indigo-500/10">
                     <h2 className="text-lg font-bold text-white mb-3">Duración del turno</h2>
@@ -409,10 +469,14 @@ export default function Gameplay() {
             <GameplaySidebar
               userId={userId}
               gameId={game.id}
+              matchId={matchId}
+              gameTitle={game.title}
               movements={movements}
+              players={allPlayers}
               availableModes={game.available_modes}
             />
           </div>
+          </div>{/* cierre wrapper w-fit */}
         </div>
       </div>
     </div>

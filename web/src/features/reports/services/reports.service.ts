@@ -1,14 +1,18 @@
 import {
+  getUserGameReports as getUserGameReportsFromApi,
+  getUserReports as getUserReportsFromApi,
   reportGame as reportGameFromApi,
   reportUser as reportUserFromApi,
   searchReportableGames as searchReportableGamesFromApi,
   searchReportableUsers as searchReportableUsersFromApi,
+  type GameReport,
   type ReportableGame,
   type ReportableUser,
+  type UserReport,
 } from "../../../../../packages/api/src";
 import { supabase } from "../../../supabase";
 
-export type { ReportableUser, ReportableGame };
+export type { ReportableUser, ReportableGame, UserReport, GameReport };
 
 export function reportUser(
   reporterId: string,
@@ -34,4 +38,12 @@ export function reportGame(
 
 export function searchReportableGames(reporterId: string, titleQuery: string): Promise<ReportableGame[]> {
   return searchReportableGamesFromApi(supabase, reporterId, titleQuery);
+}
+
+export function getUserReports(reporterId: string): Promise<UserReport[]> {
+  return getUserReportsFromApi(supabase, reporterId);
+}
+
+export function getUserGameReports(reporterId: string): Promise<GameReport[]> {
+  return getUserGameReportsFromApi(supabase, reporterId);
 }

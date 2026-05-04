@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Search, UserPlus, X, Loader2 } from 'lucide-react';
 import { searchUsers, addFriend } from '../services/friend.service.ts';
 import type { ChatProfile } from '../types/chat.types';
+import UserAvatar from '../../../shared/components/UserAvatar';
 
 interface AddFriendModalProps {
   currentUserId: string;
@@ -83,13 +84,7 @@ export default function AddFriendModal({ currentUserId, onClose, onFriendAdded }
             {results.map((user) => (
               <div key={user.id} className="flex items-center justify-between p-3 bg-slate-800/40 rounded-xl border border-slate-800">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center font-bold text-white overflow-hidden">
-                    {user.avatar_url ? (
-                      <img src={user.avatar_url} alt={user.username} className="w-full h-full object-cover" />
-                    ) : (
-                      user.username.charAt(0).toUpperCase()
-                    )}
-                  </div>
+                  <UserAvatar src={user.avatar_url} name={user.username} size={40} />
                   <span className="font-medium text-slate-200">{user.username}</span>
                 </div>
                 

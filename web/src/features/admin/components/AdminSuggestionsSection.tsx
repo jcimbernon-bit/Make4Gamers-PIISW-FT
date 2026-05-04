@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '../supabase'; // VOLVEMOS AL ORIGINAL
+import { useTranslation } from 'react-i18next';
+import { supabase } from '../../../supabase'; 
 import { useNavigate } from 'react-router-dom';
 import { 
     CheckCircle, Clock, XCircle, Filter, MessageSquare,
@@ -7,6 +8,7 @@ import {
 } from 'lucide-react';
 
 export default function AdminSugerencias() {
+    const { t, i18n } = useTranslation();
     const [suggestions, setSuggestions] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [isAdmin, setIsAdmin] = useState(false);
@@ -35,7 +37,7 @@ export default function AdminSugerencias() {
               .eq('id', user.id)
               .single();
 
-          if (profile?.role !== 'developer') {
+          if (profile?.role !== 'admin') {
               setIsAdmin(false);
               setLoading(false);
               return;
@@ -85,20 +87,20 @@ export default function AdminSugerencias() {
   };
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('es-ES', {
+    return new Date(dateStr).toLocaleDateString(i18n.language || 'es-ES', {
       day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
     });
   };
 
-  if (loading) return <div className="text-center p-10 text-white">Verificando permisos...</div>;
+  if (loading) return <div className="text-center p-10 text-white">{t('admin.suggestionsPage.checking')}</div>;
 
   if (!isAdmin) {
     return (
       <div className="max-w-md mx-auto mt-20 p-8 bg-red-500/10 border border-red-500/20 rounded-2xl text-center">
         <ShieldAlert size={48} className="text-red-500 mx-auto mb-4" />
-        <h2 className="text-xl font-bold text-white mb-2">Acceso Denegado</h2>
-        <p className="text-slate-400 mb-6">Esta zona es solo para desarrolladores</p>
-        <button onClick={() => navigate('/')} className="text-indigo-400 hover:underline">Volver al inicio</button>
+         <h2 className="text-xl font-bold text-white mb-2">{t('admin.suggestionsPage.accessDenied')}</h2>
+         <p className="text-slate-400 mb-6">{t('admin.suggestionsPage.accessDeniedDesc')}</p>
+         <button onClick={() => navigate('/')} className="text-indigo-400 hover:underline">{t('admin.backHome')}</button>
       </div>
     );
   }
@@ -108,12 +110,12 @@ export default function AdminSugerencias() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-            <Filter className="text-indigo-400" /> Panel de Sugerencias
+            <Filter className="text-indigo-400" /> {t('admin.suggestionsPage.title')}
           </h1>
-          <p className="text-slate-400">Gestiona las ideas y reportes de la comunidad</p>
+          <p className="text-slate-400">{t('admin.suggestionsPage.subtitle')}</p>
         </div>
         <div className="bg-slate-800 px-4 py-2 rounded-lg border border-slate-700 text-slate-300 text-sm">
-          Total: {suggestions.length} mensajes
+          {t('admin.suggestionsPage.total', { count: suggestions.length })}
         </div>
       </div>
 
@@ -121,7 +123,7 @@ export default function AdminSugerencias() {
         {suggestions.length === 0 ? (
           <div className="text-center py-20 bg-slate-800/30 rounded-2xl border border-slate-700 border-dashed">
             <MessageSquare className="mx-auto text-slate-600 mb-4" size={48} />
-            <p className="text-slate-500 text-xl">No hay sugerencias</p>
+            <p className="text-slate-500 text-xl">{t('admin.suggestionsPage.empty')}</p>
           </div>
         ) : (
           suggestions.map((s) => (
@@ -137,7 +139,7 @@ export default function AdminSugerencias() {
                   <p className="text-white text-lg mb-4 leading-relaxed">{s.content}</p>
                   <div className="flex items-center gap-6 text-sm text-slate-400">
                     <span className="flex items-center gap-2">
-                      <UserIcon size={14} /> {s.profiles?.username || 'Usuario desconocido'}
+                      <UserIcon size={14} /> {s.profiles?.username || t('admin.suggestionsPage.unknownUser')}
                     </span>
                     <span className="flex items-center gap-2">
                       <Calendar size={14} /> {formatDate(s.created_at)}
@@ -150,19 +152,19 @@ export default function AdminSugerencias() {
                     onClick={() => updateStatus(s.id, 'en revisión')}
                     className="flex items-center gap-2 px-3 py-2 bg-slate-700 hover:bg-amber-600/20 text-slate-300 hover:text-amber-400 rounded-lg transition-all text-sm border border-transparent hover:border-amber-500/30"
                   >
-                    <Clock size={16} /> En revisión
+                    <Clock size={16} /> {t('admin.suggestionsPage.reviewing')}
                   </button>
                   <button 
                     onClick={() => updateStatus(s.id, 'aceptada')}
                     className="flex items-center gap-2 px-3 py-2 bg-slate-700 hover:bg-emerald-600/20 text-slate-300 hover:text-emerald-400 rounded-lg transition-all text-sm border border-transparent hover:border-emerald-500/30"
                   >
-                    <CheckCircle size={16} /> Aceptar
+                    <CheckCircle size={16} /> {t('admin.suggestionsPage.accept')}
                   </button>
                   <button 
                     onClick={() => updateStatus(s.id, 'descartada')}
                     className="flex items-center gap-2 px-3 py-2 bg-slate-700 hover:bg-red-600/20 text-slate-300 hover:text-red-400 rounded-lg transition-all text-sm border border-transparent hover:border-red-500/30"
                   >
-                    <XCircle size={16} /> Descartar
+                    <XCircle size={16} /> {t('admin.suggestionsPage.reject')}
                   </button>
                 </div>
               </div>

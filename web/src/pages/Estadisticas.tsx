@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
 import { 
-    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-    
+    AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
 } from 'recharts';
-import { Activity, Trophy, Gamepad2, Calendar} from 'lucide-react';
+import { Activity, Trophy, Gamepad2, Calendar, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../supabase';
 import { getUserDetailedStats } from '../features/account/services/account.service';
@@ -13,6 +12,7 @@ import IconSpinner from '../shared/layout/Spinner';
 export default function Estadisticas() {
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState<any>(null);
+    const [selectedPeriod, setSelectedPeriod] = useState<'daily' | 'weekly' | 'monthly'>('daily');
 
     useEffect(() => {
         const loadStats = async () => {
@@ -94,8 +94,90 @@ export default function Estadisticas() {
                     </div>
                 </div>
 
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                    <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-cyan-500/10 rounded-xl text-cyan-400">
+                                <Users size={24} />
+                            </div>
+                            <div>
+                                <p className="text-sm text-slate-500 uppercase font-semibold">Usuarios activos</p>
+                                <p className="text-3xl font-bold text-white">{stats.totalUsers}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-violet-500/10 rounded-xl text-violet-400">
+                                <Activity size={24} />
+                            </div>
+                            <div>
+                                <p className="text-sm text-slate-500 uppercase font-semibold">Partidas en las últimas 6 semanas</p>
+                                <p className="text-3xl font-bold text-white">{stats.matchesThisWeek}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-emerald-500/10 rounded-xl text-emerald-400">
+                                <Trophy size={24} />
+                            </div>
+                            <div>
+                                <p className="text-sm text-slate-500 uppercase font-semibold">Partidas en los últimos 6 meses</p>
+                                <p className="text-3xl font-bold text-white">{stats.matchesThisMonth}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     
+                    {/* Gráfico de Tendencia por Periodo */}
+                    <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
+                        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
+                            <div>
+                                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                                    <Activity size={18} className="text-indigo-400" />
+                                    Actividad por periodo
+                                </h3>
+                                <p className="text-sm text-slate-500">Ver tus partidas por día, semana o mes.</p>
+                            </div>
+                            <div className="inline-flex rounded-full border border-slate-800 bg-slate-950/70 p-1">
+                                {(['daily', 'weekly', 'monthly'] as const).map((option) => (
+                                    <button
+                                        key={option}
+                                        type="button"
+                                        onClick={() => setSelectedPeriod(option)}
+                                        className={`px-4 py-2 text-sm font-semibold transition-colors rounded-full ${selectedPeriod === option ? 'bg-indigo-500 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}
+                                    >
+                                        {option === 'daily' ? 'Día' : option === 'weekly' ? 'Semana' : 'Mes'}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="h-80 w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={stats.periodChartData?.[selectedPeriod] || []}>
+                                    <defs>
+                                        <linearGradient id="statsGradient" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.7} />
+                                            <stop offset="95%" stopColor="#0f172a" stopOpacity={0.05} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+                                    <XAxis dataKey="name" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
+                                    <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
+                                    <Tooltip 
+                                        cursor={false}
+                                        contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '8px' }}
+                                        itemStyle={{ color: '#81e6d9' }}
+                                    />
+                                    <Area type="monotone" dataKey="count" stroke="#38bdf8" fill="url(#statsGradient)" name="Partidas" strokeWidth={3} />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+
                     {/* Gráfico de Barras: Popularidad */}
                     <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
                         <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">

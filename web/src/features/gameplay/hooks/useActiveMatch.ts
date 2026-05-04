@@ -14,16 +14,26 @@ export type ActiveMatchData = {
   players: MatchPlayer[];
 };
 
-type RawMatch = {
+type RawMatch = Record<string, unknown> & {
   id: string;
-  player_1: string;
-  player_2: string | null;
-  status: string;
   game_id: string;
+  status: string;
 };
 
+/** Extrae todos los valores de columnas player_1, player_2, player_3… que no sean null */
+function extractPlayerIds(row: RawMatch): string[] {
+  const ids: string[] = [];
+  let i = 1;
+  while (row[`player_${i}`] !== undefined) {
+    const val = row[`player_${i}`];
+    if (typeof val === "string" && val) ids.push(val);
+    i++;
+  }
+  return ids;
+}
+
 async function loadMatchWithPlayers(matchRow: RawMatch): Promise<ActiveMatchData> {
-  const playerIds = [matchRow.player_1, matchRow.player_2].filter(Boolean) as string[];
+  const playerIds = extractPlayerIds(matchRow);
 
   const { data: profiles } = await supabase
     .from("profiles")
@@ -40,9 +50,9 @@ async function loadMatchWithPlayers(matchRow: RawMatch): Promise<ActiveMatchData
   });
 
   return {
-    id: matchRow.id,
-    player_1: matchRow.player_1,
-    player_2: matchRow.player_2 ?? null,
+    id: matchRow.id as string,
+    player_1: matchRow.player_1 as string,
+    player_2: (matchRow.player_2 as string | null) ?? null,
     players,
   };
 }
@@ -51,12 +61,16 @@ async function fetchActiveMatch(
   gameId: string,
   userId: string,
 ): Promise<ActiveMatchData | null> {
+  // Filtramos solo por player_1/player_2 (columnas garantizadas).
+  // select("*") recoge también player_3, player_4… si existen en la tabla.
+  const orFilter = `player_1.eq.${userId},player_2.eq.${userId}`;
+
   const { data: match, error } = await supabase
     .from("matches")
-    .select("id, game_id, player_1, player_2, status")
+    .select("*")
     .eq("game_id", gameId)
     .eq("status", "in_progress")
-    .or(`player_1.eq.${userId},player_2.eq.${userId}`)
+    .or(orFilter)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -71,9 +85,9 @@ async function fetchActiveMatch(
   // Fallback: la partida fue creada por el juego con su propio game_id
   const { data: fallbackMatch, error: fallbackError } = await supabase
     .from("matches")
-    .select("id, game_id, player_1, player_2, status")
+    .select("*")
     .eq("status", "in_progress")
-    .or(`player_1.eq.${userId},player_2.eq.${userId}`)
+    .or(orFilter)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -126,7 +140,9 @@ export function useActiveMatch(
           const currentUserId = userIdRef.current;
 
           if (row.game_id !== currentGameId) return;
-          if (row.player_1 !== currentUserId && row.player_2 !== currentUserId) return;
+
+          const playerIds = extractPlayerIds(row);
+          if (!playerIds.includes(currentUserId)) return;
 
           if (row.status === "in_progress") {
             loadMatchWithPlayers(row)

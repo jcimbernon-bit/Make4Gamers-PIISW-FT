@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Claude / Skills
+.claude/
+
+# Python artifacts
+__pycache__/
+*.py[cod]

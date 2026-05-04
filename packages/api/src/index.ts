@@ -25,8 +25,17 @@ export {
   getAccountRecentGames,
   getAccountFriends,
 } from "./services/account.service";
-export { reportUser, searchReportableUsers, reportGame, searchReportableGames } from "./services/reports.service";
+export {
+  reportUser,
+  searchReportableUsers,
+  reportGame,
+  searchReportableGames,
+  getUserReports,
+  getUserGameReports,
+} from "./services/reports.service";
+export { createSupportTicket, getUserSupportTickets } from "./services/tickets.service";
 
 export type { Game } from "./types/game";
 export type { AccountProfile, AccountRecentGame, AccountFriend } from "./types/account";
-export type { ReportableUser, ReportableGame } from "./services/reports.service";
+export type { ReportableUser, ReportableGame, UserReport, GameReport } from "./services/reports.service";
+export type { CreateSupportTicketInput, CreateSupportTicketResult, SupportTicket } from "./services/tickets.service";

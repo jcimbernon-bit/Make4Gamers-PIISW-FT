@@ -3,6 +3,7 @@ import { UserPlus, Check, X, Users, AlertCircle, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { friendshipService } from '../services/friendship.service';
 import { supabase } from '../../../supabase';
+import UserAvatar from '../../../shared/components/UserAvatar';
 
 export default function FriendManager() {
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -172,13 +173,7 @@ const handleSendRequest = async (e: React.FormEvent) => {
                 {pendingRequests.map((req) => (
                     <div key={req.id} className="flex items-center justify-between p-3 bg-slate-800/30 border border-slate-700/50 rounded-lg">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-slate-300 font-bold overflow-hidden">
-                        {req.sender?.avatar_url ? (
-                            <img src={req.sender.avatar_url} alt="avatar" className="w-full h-full object-cover" />
-                        ) : (
-                            req.sender?.username?.charAt(0).toUpperCase() || '?'
-                        )}
-                        </div>
+                        <UserAvatar src={req.sender?.avatar_url} name={req.sender?.username} size={40} />
                         <div>
                         <p className="text-white font-medium">{req.sender?.username}</p>
                         <p className="text-xs text-slate-500">Quiere ser tu amigo</p>
@@ -224,13 +219,7 @@ const handleSendRequest = async (e: React.FormEvent) => {
                       className="flex items-center gap-3 p-3 bg-slate-800/40 border border-slate-700/50 rounded-lg hover:bg-slate-800 hover:border-indigo-500/50 transition-all cursor-pointer group"
                     >
                       <div className="relative">
-                          <div className="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-300 font-bold overflow-hidden">
-                          {friend.friendProfile?.avatar_url ? (
-                              <img src={friend.friendProfile.avatar_url} alt="avatar" className="w-full h-full object-cover" />
-                          ) : (
-                              friend.friendProfile?.username?.charAt(0).toUpperCase() || '?'
-                          )}
-                          </div>
+                          <UserAvatar src={friend.friendProfile?.avatar_url} name={friend.friendProfile?.username} size={40} />
                           {/* Indicador de estado (Online/Offline) */}
                           <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-slate-900 ${friend.friendProfile?.status === 'Disponible' ? 'bg-green-500' : 'bg-slate-500'}`}></div>
                       </div>

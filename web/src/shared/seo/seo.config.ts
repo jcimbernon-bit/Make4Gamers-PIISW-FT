@@ -1,5 +1,5 @@
-export const SITE_NAME = "Make4Gamers";
-export const SITE_URL = "https://make4gamers.com";
+export const SITE_NAME = "Made4Gamers";
+export const SITE_URL = "https://made4gamers.com";
 
 export const SUPPORTED_LANGUAGES = ["es", "en", "cn"] as const;
 

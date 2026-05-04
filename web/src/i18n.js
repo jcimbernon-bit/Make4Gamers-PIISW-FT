@@ -12,9 +12,187 @@ i18n
                     nav: {
                         games: "Juegos",
                         ranking: "Ranking",
+                        stats: "Estadísticas",
                         chat: "Chat",
                         account: "Cuenta",
                         logout: "Cerrar sesión"
+                    },
+                    admin: {
+                        management: "Gestión",
+                        panelButton: "Admin",
+                        panelTitle: "Panel de administración",
+                        panelSubtitle: "Gestión centralizada de la plataforma.",
+                        dashboard: "Panel",
+                        devRequests: "Solicitudes Dev",
+                        pendingTickets: "Tickets pendientes",
+                        pendingSuggestions: "Sugerencias en revisión",
+                        pendingDevRequests: "Solicitudes dev pendientes",
+                        backHome: "Volver al inicio",
+                        loading: "Cargando panel de administración...",
+                        requests: {
+                            loading: "Cargando solicitudes...",
+                            title: "Solicitudes de developer",
+                            subtitle: "Gestiona aprobaciones y rechazos.",
+                            empty: "No hay solicitudes registradas.",
+                            unknownUser: "Usuario desconocido",
+                            accept: "Aceptar",
+                            reject: "Rechazar"
+                        },
+                        wordFilterPage: {
+                            loading: "Cargando...",
+                            title: "Filtro de Chat",
+                            subtitle: "Gestiona las palabras ofensivas censuradas automáticamente.",
+                            placeholder: "Escriba una palabra",
+                            add: "Añadir",
+                            added: "Palabra añadida al filtro",
+                            deleted: "Palabra eliminada"
+                        },
+                        suggestionsPage: {
+                            checking: "Verificando permisos...",
+                            accessDenied: "Acceso Denegado",
+                            accessDeniedDesc: "Esta zona es solo para desarrolladores",
+                            title: "Panel de Sugerencias",
+                            subtitle: "Gestiona las ideas y reportes de la comunidad",
+                            total_one: "Total: {{count}} mensaje",
+                            total_other: "Total: {{count}} mensajes",
+                            empty: "No hay sugerencias",
+                            unknownUser: "Usuario desconocido",
+                            reviewing: "En revisión",
+                            accept: "Aceptar",
+                            reject: "Descartar"
+                        },
+                        ticketsPage: {
+                            loading: "Cargando panel de soporte...",
+                            accessDenied: "Acceso Denegado",
+                            accessDeniedDesc: "Esta zona es solo para el equipo de soporte y desarrolladores",
+                            title: "Panel de Soporte",
+                            subtitle: "Gestiona y resuelve los tickets de los usuarios",
+                            empty: "No hay tickets que coincidan con los filtros",
+                            unknownUser: "Usuario desconocido",
+                            reviewing: "En revisión",
+                            resolve: "Marcar Resuelto"
+                        },
+                        formulasPage: {
+                            title: "Laboratorio de Fórmulas",
+                            subtitle: "Ajusta la economía y puntuaciones del juego en tiempo real.",
+                            previewTitle: "Vista Previa del Multiplicador",
+                            points: "puntos",
+                            previewText: {
+                                beforeScore: "Si un jugador gana una partida de",
+                                beforeMultiplier: "con el multiplicador actual de",
+                                beforeTotal: "recibirá un total de",
+                                afterTotal: "para el ranking."
+                            },
+                            success: "¡Fórmulas actualizadas y aplicadas en tiempo real!",
+                            error: "Hubo un error al guardar las configuraciones.",
+                            saving: "Guardando...",
+                            saveApply: "Guardar y Aplicar Fórmulas"
+                        },
+                        formulas: "Fórmulas",
+                        tickets: "Tickets",
+                        suggestions: "Sugerencias",
+                        wordFilter: "Filtro de Palabras"
+                    },
+                    developer: {
+                        layout: {
+                            loading: "Cargando panel de desarrollador…",
+                            portalBadge: "Developer Portal",
+                            title: "Panel de Desarrollador",
+                            subtitle: "Gestión y seguimiento de tus contribuciones a M4G.",
+                            backHome: "Volver al inicio",
+                            contactPrompt: "¿Dudas o problemas?",
+                            contactLink: "Contacta con el equipo",
+                            nav: { dashboard: "Panel", games: "Mis juegos", stats: "Estadísticas" }
+                        },
+                        status: {
+                            published: "Publicado", review: "En revisión", rejected: "Rechazado",
+                            draft: "Borrador", inactive: "Inactivo", unknown: "Desconocido"
+                        },
+                        dashboard: {
+                            verifiedBadge: "Desarrollador Verificado",
+                            welcome: "Bienvenido al equipo de",
+                            welcomeDesc: "Desde aquí puedes gestionar tus juegos, seguir su evolución y consultar la documentación oficial.",
+                            manualLink: "Manual de Desarrollador",
+                            cards: { total: "Total", published: "Publicados", review: "En revisión", rejected: "Rechazados" },
+                            drafts_one: "{{count}} juego en borrador",
+                            drafts_other: "{{count}} juegos en borrador",
+                            draftsDesc: "Pendientes de enviar a revisión",
+                            viewGames: "Ver juegos",
+                            recentTitle: "Mis juegos recientes",
+                            noGames: "Aún no has subido ningún juego."
+                        },
+                        games: {
+                            title: "Mis juegos",
+                            count_one: "{{count}} juego", count_other: "{{count}} juegos",
+                            addGame: "Añadir juego",
+                            emptyTitle: "Aún no has publicado ningún juego",
+                            emptyDesc: "Empieza ahora y llega a miles de jugadores en M4G.",
+                            publishFirst: "Publicar mi primer juego",
+                            noDescription: "Sin descripción", play: "Jugar", edit: "Editar"
+                        },
+                        stats: {
+                            title: "Estadísticas de mis juegos",
+                            empty: "No hay juegos para mostrar estadísticas.",
+                            totalPlays: "Partidas totales", uniquePlayers: "Jugadores únicos", avgRating: "Valoración media",
+                            chartTitle: "Partidas por juego", tableTitle: "Desglose por juego",
+                            colGame: "Juego", colPlays: "Partidas", colUnique: "Jugadores únicos", colRating: "Valoración"
+                        },
+                        manual: {
+                            backToPanel: "Volver al panel",
+                            title: "Manual de Desarrollador",
+                            subtitle: "Documentación técnica oficial de M4G para desarrolladores verificados.",
+                            searchPlaceholder: "Buscar en el manual…",
+                            results_one: "{{count}} sección encontrada para",
+                            results_other: "{{count}} secciones encontradas para",
+                            noResults: "No hay secciones que coincidan con tu búsqueda.",
+                            clearSearch: "Limpiar búsqueda",
+                            footerText: "Manual de Desarrollador M4G · Última actualización: mayo 2026 ·",
+                            footerLink: "¿Algo desactualizado? Cuéntanos"
+                        },
+                        gameEdit: {
+                            loading: "Cargando juego…", notFound: "Juego no encontrado.",
+                            backToGames: "Volver a mis juegos", pageTitle: "Editar juego",
+                            save: "Guardar cambios", saving: "Guardando…",
+                            saved: "Juego actualizado correctamente", saveError: "Error al guardar",
+                            notFoundError: "Juego no encontrado", permissionError: "No tienes permiso para editar este juego",
+                            nameRequired: "El nombre es obligatorio",
+                            sections: { basic: "Información básica", urlDist: "URL y distribución del juego", thumbnail: "Imagen de portada", rules: "Documento de reglas", publication: "Publicación" },
+                            fields: { title: "Nombre del juego", description: "Descripción", version: "Versión", minAge: "Edad mínima", price: "Precio (€)", genre: "Género", modes: "Modos de juego", url: "URL de alojamiento", dist: "Dist del juego", thumbnail: "Thumbnail", rules: "Nuevo documento", currentStatus: "Estado actual" },
+                            hints: { version: "Ej: 1.0.0", minAge: "0 = sin restricción", price: "0 = gratuito", url: "Debe ser HTTPS. Déjala vacía si subes el dist directamente.", dist: ".html, .js, .zip — el HTML se usará como game_url", thumbnail: "JPG, PNG o WebP · mín. 800×600", rules: "PDF, DOC, DOCX, TXT, MD" },
+                            sendToReview: "Enviar a revisión",
+                            free: "Gratuito", forAll: "Para todos",
+                            orUpload: "o sube el archivo del juego",
+                            viewCurrentDoc: "Ver documento actual",
+                            statusNote: "El estado solo puede cambiarlo el equipo de M4G. Para solicitar cambios de visibilidad,",
+                            contactLink: "contacta con el equipo",
+                            change: "Cambiar", removeFile: "Quitar archivo", clickOrDrag: "Haz clic o arrastra aquí",
+                            slugLabel: "Slug",
+                            storageNote: "Archivos en"
+                        },
+                        gameNew: {
+                            pageTitle: "Publicar nuevo juego", backToPortal: "Volver al portal",
+                            steps: { info: "Información", technical: "Técnico", assets: "Assets", review: "Revisión" },
+                            stepTitles: { info: "Información básica", technical: "Detalles técnicos", assets: "Assets del juego", review: "Revisión y publicación" },
+                            buttons: { next: "Siguiente", back: "Atrás", submit: "Publicar juego", submitting: "Publicando…" },
+                            validation: {
+                                titleRequired: "El nombre del juego es obligatorio.",
+                                urlOrFile: "Debes indicar una URL o subir un archivo del juego.",
+                                urlHttps: "La URL del juego debe usar HTTPS.",
+                                thumbnailRequired: "La imagen de portada es obligatoria.",
+                                rulesFormat: "El documento de reglas debe ser un archivo .md",
+                                imageSize: "La imagen no puede superar los 2 MB"
+                            },
+                            uploading: "Subiendo archivos…", creating: "Creando juego…",
+                            success: "¡Juego enviado a revisión!", error: "Error al publicar el juego",
+                            review: { name: "Nombre", description: "Descripción", genre: "Género", modes: "Modos", version: "Versión", minAge: "Edad mínima", price: "Precio", urlDist: "URL / Dist", rules: "Reglas (.md)", thumbnail: "Imagen de portada" },
+                            values: { forAll: "Para todos", free: "Gratuito", notSpecified: "Sin especificar", notIndicated: "No indicados", withoutDoc: "Sin documento", urlConfigured: "URL configurada correctamente.", fileSelected: "Archivo seleccionado: {{name}}" },
+                            orUpload: "o sube el archivo del juego",
+                            rulesOptional: "documento de reglas (opcional)",
+                            stepOf: "Paso {{step}} de {{total}}", percentComplete: "{{percent}}% completado",
+                            reviewTitle: "Datos del juego",
+                            initialStatus: "Estado inicial: En borrador. El equipo de M4G lo revisará antes de publicarlo.",
+                            change: "Cambiar", removeFile: "Quitar archivo", clickOrDrag: "Haz clic o arrastra aquí"
+                        }
                     },
                     footer: {
                         description: "La plataforma definitiva para descubrir, jugar y compartir tus experiencias de juego favoritas.",
@@ -98,6 +276,24 @@ i18n
                             needAnotherLink: "¿Necesitas solicitar otro enlace?",
                             backToRecover: "Volver a recuperar contraseña"
                         }
+                    },
+                    contact: {
+                        title: "Buzón de Sugerencias",
+                        subtitle: "Ayúdanos a mejorar Make4Gamers con tus ideas o reportando fallos.",
+                        categoryLabel: "¿Qué tipo de mensaje es?",
+                        categories: {
+                            idea: "Tengo una idea o sugerencia de mejora",
+                            bug: "He encontrado un error",
+                            support: "Necesito ayuda con la plataforma",
+                            other: "Otro tema"
+                        },
+                        contentLabel: "Detalles de tu mensaje",
+                        contentPlaceholder: "Explícanos con detalle...",
+                        submit: "Enviar Mensaje",
+                        submitting: "Enviando...",
+                        successMessage: "¡Gracias! Tu mensaje ha sido enviado al equipo de desarrollo.",
+                        errorAuth: "Debes iniciar sesión para enviar una sugerencia.",
+                        errorGeneric: "Hubo un error al enviar tu mensaje. Inténtalo de nuevo."
                     },
                     game: {
                         popular: "Juegos Populares",
@@ -229,7 +425,11 @@ i18n
                             personal: "Personal",
                             friends: "Amigos",
                             payments: "Pagos",
-                            security: "Seguridad"
+                            security: "Seguridad",
+                            support: "Soporte",
+                            matches: "Partidas",
+                            stats: "Estadisticas",
+                            achievements: "Logros"
                         },
                         dashboard: {
                             defaultUser: "Usuario",
@@ -241,7 +441,29 @@ i18n
                             vs: "Vs.",
                             defaultOpponent: "OpponentName",
                             status: "Estado",
-                            finished: "Finalizado"
+                            finished: "Finalizado",
+                            bestRecords: "Mis Mejores Marcas",
+                            achievements: "Mis Logros",
+                            noAchievements: "Aun no has desbloqueado ningun logro.",
+                            achievementFallbackTitle: "Logro desbloqueado",
+                            achievementFallbackDescription: "Este logro no tiene descripcion disponible.",
+                            recentGames: "Últimas partidas",
+                            noRecentGames: "No hay partidas recientes registradas.",
+                            score: "Puntos"
+                        },
+                        stats: {
+                            title: "Estadisticas",
+                            subtitle: "Analisis detallado de tu rendimiento en juegos.",
+                            totalMatches: "Partidas totales",
+                            highestScore: "Puntuacion maxima",
+                            favoriteGame: "Juego favorito",
+                            favoriteGamePlays: "{{count}} partidas jugadas",
+                            gamesChart: "Partidas por juego",
+                            recentActivity: "Actividad reciente",
+                            matches: "Partidas",
+                            emptyTitle: "Aun no hay estadisticas",
+                            emptyDescription: "Juega algunas partidas para empezar a ver tus graficas.",
+                            emptyActivity: "Aun no hay actividad reciente."
                         },
                         personal: {
                             noUsername: "Usuario Sin Nombre",
@@ -271,6 +493,26 @@ i18n
                             benefitLeagues: "Permite crear ligas",
                             renewalNote: "La suscripción se renueva automáticamente al final de cada periodo."
                         },
+                        support: {
+                            title: "Soporte",
+                            subtitle: "Consulta tus tickets y reportes enviados al equipo.",
+                            openTicket: "Abrir ticket",
+                            loading: "Cargando historial de soporte...",
+                            reason: "Motivo",
+                            unknownUser: "Usuario desconocido",
+                            unknownGame: "Juego desconocido",
+                            emptyTickets: "Todavía no has abierto ningún ticket.",
+                            emptyUserReports: "Todavía no has reportado ningún jugador.",
+                            emptyGameReports: "Todavía no has reportado ningún juego.",
+                            tabs: {
+                                tickets: "Tickets",
+                                users: "Jugadores",
+                                games: "Juegos"
+                            },
+                            status: {
+                                pending: "Pendiente"
+                            }
+                        },
                         security: {
                             title: "Seguridad",
                             personalSection: "Cuenta personal",
@@ -283,11 +525,12 @@ i18n
                             verifyEmail: "Verificar correo electrónico",
                             socialSupportSection: "Social y soporte",
                             reportPlayer: "Reportar jugador",
-                            reportGame: "Reportar game",
-                            reportIncident: "Reportar incident",
+                            reportGame: "Reportar juego",
+                            reportIncident: "Reportar incidente",
+                            openTicket: "Abrir ticket",
                             friendPrivacy: "Privacidad de amistad",
                             requestsEnabled: "Recibiendo solicitudes",
-                            requestsBlocked: "Solicitudes bloqueadas", 
+                            requestsBlocked: "Solicitudes bloqueadas",
                             passwords: {
                                 currentPassword: "Contraseña actual",
                                 enterCurrentPassword: "Introduce tu contraseña actual",
@@ -349,6 +592,24 @@ i18n
                                     inappropriate: "Contenido inapropiado",
                                     brokenLink: "No carga o enlace roto",
                                     copyright: "Problema de derechos",
+                                    other: "Otro"
+                                }
+                            },
+                            ticketModal: {
+                                title: "Abrir ticket de soporte",
+                                subject: "Asunto",
+                                subjectPlaceholder: "Ej: Problema al iniciar una partida",
+                                category: "Categoría",
+                                message: "Descripción",
+                                messagePlaceholder: "Cuéntanos qué ocurre con el mayor detalle posible...",
+                                requiredFields: "El asunto y la descripción son obligatorios.",
+                                createError: "No se pudo abrir el ticket.",
+                                created: "Ticket {{ticketNumber}} abierto correctamente.",
+                                submit: "Enviar ticket",
+                                categories: {
+                                    technical: "Problema técnico",
+                                    payments: "Pagos y facturación",
+                                    abuse: "Denunciar un abuso",
                                     other: "Otro"
                                 }
                             }
@@ -421,9 +682,187 @@ i18n
                     nav: {
                         games: "Games",
                         ranking: "Ranking",
+                        stats: "Stats",
                         chat: "Chat",
                         account: "Account",
                         logout: "Sign Out"
+                    },
+                    admin: {
+                        management: "Management",
+                        panelButton: "Admin",
+                        panelTitle: "Administration panel",
+                        panelSubtitle: "Centralized platform management.",
+                        dashboard: "Dashboard",
+                        devRequests: "Dev requests",
+                        pendingTickets: "Pending tickets",
+                        pendingSuggestions: "Suggestions in review",
+                        pendingDevRequests: "Pending dev requests",
+                        backHome: "Back to home",
+                        loading: "Loading administration panel...",
+                        requests: {
+                            loading: "Loading requests...",
+                            title: "Developer requests",
+                            subtitle: "Manage approvals and rejections.",
+                            empty: "No requests found.",
+                            unknownUser: "Unknown user",
+                            accept: "Accept",
+                            reject: "Reject"
+                        },
+                        wordFilterPage: {
+                            loading: "Loading...",
+                            title: "Chat Filter",
+                            subtitle: "Manage offensive words censored automatically.",
+                            placeholder: "Type a word",
+                            add: "Add",
+                            added: "Word added to filter",
+                            deleted: "Word removed"
+                        },
+                        suggestionsPage: {
+                            checking: "Checking permissions...",
+                            accessDenied: "Access denied",
+                            accessDeniedDesc: "This area is only for developers",
+                            title: "Suggestions panel",
+                            subtitle: "Manage community ideas and reports",
+                            total_one: "Total: {{count}} message",
+                            total_other: "Total: {{count}} messages",
+                            empty: "No suggestions",
+                            unknownUser: "Unknown user",
+                            reviewing: "Reviewing",
+                            accept: "Accept",
+                            reject: "Discard"
+                        },
+                        ticketsPage: {
+                            loading: "Loading support panel...",
+                            accessDenied: "Access denied",
+                            accessDeniedDesc: "This area is only for support and developers",
+                            title: "Support panel",
+                            subtitle: "Manage and resolve user tickets",
+                            empty: "No tickets match current filters",
+                            unknownUser: "Unknown user",
+                            reviewing: "Reviewing",
+                            resolve: "Mark resolved"
+                        },
+                        formulasPage: {
+                            title: "Formula Lab",
+                            subtitle: "Adjust game economy and scoring in real time.",
+                            previewTitle: "Multiplier Preview",
+                            points: "points",
+                            previewText: {
+                                beforeScore: "If a player wins a match worth",
+                                beforeMultiplier: "with the current multiplier",
+                                beforeTotal: "they will receive a total of",
+                                afterTotal: "for the ranking."
+                            },
+                            success: "Formulas updated and applied in real time!",
+                            error: "There was an error saving the settings.",
+                            saving: "Saving...",
+                            saveApply: "Save and Apply Formulas"
+                        },
+                        formulas: "Formulas",
+                        tickets: "Tickets",
+                        suggestions: "Suggestions",
+                        wordFilter: "Word Filter"
+                    },
+                    developer: {
+                        layout: {
+                            loading: "Loading developer panel…",
+                            portalBadge: "Developer Portal",
+                            title: "Developer Panel",
+                            subtitle: "Manage and track your contributions to M4G.",
+                            backHome: "Back to home",
+                            contactPrompt: "Questions or issues?",
+                            contactLink: "Contact the team",
+                            nav: { dashboard: "Dashboard", games: "My games", stats: "Stats" }
+                        },
+                        status: {
+                            published: "Published", review: "In review", rejected: "Rejected",
+                            draft: "Draft", inactive: "Inactive", unknown: "Unknown"
+                        },
+                        dashboard: {
+                            verifiedBadge: "Verified Developer",
+                            welcome: "Welcome to the team at",
+                            welcomeDesc: "From here you can manage your games, track their progress and check the official documentation.",
+                            manualLink: "Developer Manual",
+                            cards: { total: "Total", published: "Published", review: "In review", rejected: "Rejected" },
+                            drafts_one: "{{count}} game in draft",
+                            drafts_other: "{{count}} games in draft",
+                            draftsDesc: "Pending submission for review",
+                            viewGames: "View games",
+                            recentTitle: "My recent games",
+                            noGames: "You haven't uploaded any games yet."
+                        },
+                        games: {
+                            title: "My games",
+                            count_one: "{{count}} game", count_other: "{{count}} games",
+                            addGame: "Add game",
+                            emptyTitle: "You haven't published any games yet",
+                            emptyDesc: "Start now and reach thousands of players on M4G.",
+                            publishFirst: "Publish my first game",
+                            noDescription: "No description", play: "Play", edit: "Edit"
+                        },
+                        stats: {
+                            title: "My games stats",
+                            empty: "No games to show stats for.",
+                            totalPlays: "Total plays", uniquePlayers: "Unique players", avgRating: "Average rating",
+                            chartTitle: "Plays by game", tableTitle: "Breakdown by game",
+                            colGame: "Game", colPlays: "Plays", colUnique: "Unique players", colRating: "Rating"
+                        },
+                        manual: {
+                            backToPanel: "Back to panel",
+                            title: "Developer Manual",
+                            subtitle: "Official M4G technical documentation for verified developers.",
+                            searchPlaceholder: "Search the manual…",
+                            results_one: "{{count}} section found for",
+                            results_other: "{{count}} sections found for",
+                            noResults: "No sections match your search.",
+                            clearSearch: "Clear search",
+                            footerText: "M4G Developer Manual · Last updated: May 2026 ·",
+                            footerLink: "Something outdated? Let us know"
+                        },
+                        gameEdit: {
+                            loading: "Loading game…", notFound: "Game not found.",
+                            backToGames: "Back to my games", pageTitle: "Edit game",
+                            save: "Save changes", saving: "Saving…",
+                            saved: "Game updated successfully", saveError: "Error saving",
+                            notFoundError: "Game not found", permissionError: "You don't have permission to edit this game",
+                            nameRequired: "Name is required",
+                            sections: { basic: "Basic information", urlDist: "Game URL and distribution", thumbnail: "Cover image", rules: "Rules document", publication: "Publication" },
+                            fields: { title: "Game title", description: "Description", version: "Version", minAge: "Minimum age", price: "Price (€)", genre: "Genre", modes: "Game modes", url: "Hosting URL", dist: "Game dist", thumbnail: "Thumbnail", rules: "New document", currentStatus: "Current status" },
+                            hints: { version: "E.g. 1.0.0", minAge: "0 = no restriction", price: "0 = free", url: "Must be HTTPS. Leave empty if uploading dist directly.", dist: ".html, .js, .zip — HTML will be used as game_url", thumbnail: "JPG, PNG or WebP · min. 800×600", rules: "PDF, DOC, DOCX, TXT, MD" },
+                            sendToReview: "Submit for review",
+                            free: "Free", forAll: "For all ages",
+                            orUpload: "or upload the game file",
+                            viewCurrentDoc: "View current document",
+                            statusNote: "Status can only be changed by the M4G team. To request visibility changes,",
+                            contactLink: "contact the team",
+                            change: "Change", removeFile: "Remove file", clickOrDrag: "Click or drag here",
+                            slugLabel: "Slug",
+                            storageNote: "Files stored at"
+                        },
+                        gameNew: {
+                            pageTitle: "Publish new game", backToPortal: "Back to portal",
+                            steps: { info: "Information", technical: "Technical", assets: "Assets", review: "Review" },
+                            stepTitles: { info: "Basic information", technical: "Technical details", assets: "Game assets", review: "Review and publish" },
+                            buttons: { next: "Next", back: "Back", submit: "Publish game", submitting: "Publishing…" },
+                            validation: {
+                                titleRequired: "Game title is required.",
+                                urlOrFile: "You must provide a URL or upload the game file.",
+                                urlHttps: "The game URL must use HTTPS.",
+                                thumbnailRequired: "A cover image is required.",
+                                rulesFormat: "The rules document must be a .md file",
+                                imageSize: "Image cannot exceed 2 MB"
+                            },
+                            uploading: "Uploading files…", creating: "Creating game…",
+                            success: "Game submitted for review!", error: "Error publishing game",
+                            review: { name: "Name", description: "Description", genre: "Genre", modes: "Modes", version: "Version", minAge: "Min. age", price: "Price", urlDist: "URL / Dist", rules: "Rules (.md)", thumbnail: "Cover image" },
+                            values: { forAll: "For all ages", free: "Free", notSpecified: "Not specified", notIndicated: "Not indicated", withoutDoc: "No document", urlConfigured: "URL configured correctly.", fileSelected: "File selected: {{name}}" },
+                            orUpload: "or upload the game file",
+                            rulesOptional: "rules document (optional)",
+                            stepOf: "Step {{step}} of {{total}}", percentComplete: "{{percent}}% complete",
+                            reviewTitle: "Game data",
+                            initialStatus: "Initial status: Draft. The M4G team will review it before publishing.",
+                            change: "Change", removeFile: "Remove file", clickOrDrag: "Click or drag here"
+                        }
                     },
                     footer: {
                         description: "The ultimate platform to discover, play and share your favorite gaming experiences.",
@@ -523,6 +962,24 @@ i18n
                             needAnotherLink: "Need another link?",
                             backToRecover: "Back to recover password"
                         }
+                    },
+                    contact: {
+                        title: "Suggestions Box",
+                        subtitle: "Help us improve Make4Gamers with your ideas or by reporting issues.",
+                        categoryLabel: "What type of message is this?",
+                        categories: {
+                            idea: "I have an idea or improvement suggestion",
+                            bug: "I found a bug",
+                            support: "I need help with the platform",
+                            other: "Other topic"
+                        },
+                        contentLabel: "Message details",
+                        contentPlaceholder: "Tell us in detail...",
+                        submit: "Send Message",
+                        submitting: "Sending...",
+                        successMessage: "Thank you! Your message has been sent to the development team.",
+                        errorAuth: "You must be logged in to send a suggestion.",
+                        errorGeneric: "There was an error sending your message. Please try again."
                     },
                     game: {
                         popular: "Popular Games",
@@ -638,7 +1095,11 @@ i18n
                             personal: "Personal",
                             friends: "Friends",
                             payments: "Payments",
-                            security: "Security"
+                            security: "Security",
+                            support: "Support",
+                            matches: "Matches",
+                            stats: "Stats",
+                            achievements: "Achievements"
                         },
                         dashboard: {
                             defaultUser: "User",
@@ -650,7 +1111,29 @@ i18n
                             vs: "Vs.",
                             defaultOpponent: "OpponentName",
                             status: "Status",
-                            finished: "Finished"
+                            finished: "Finished",
+                            bestRecords: "My Best Records",
+                            achievements: "My Achievements",
+                            noAchievements: "You have not unlocked any achievement yet.",
+                            achievementFallbackTitle: "Achievement unlocked",
+                            achievementFallbackDescription: "This achievement has no description available.",
+                            recentGames: "Recent matches",
+                            noRecentGames: "No recent matches recorded.",
+                            score: "Score"
+                        },
+                        stats: {
+                            title: "Stats",
+                            subtitle: "Detailed analysis of your game performance.",
+                            totalMatches: "Total matches",
+                            highestScore: "Highest score",
+                            favoriteGame: "Favorite game",
+                            favoriteGamePlays: "{{count}} matches played",
+                            gamesChart: "Matches by game",
+                            recentActivity: "Recent activity",
+                            matches: "Matches",
+                            emptyTitle: "No stats yet",
+                            emptyDescription: "Play a few matches to start seeing your charts.",
+                            emptyActivity: "No recent activity yet."
                         },
                         personal: {
                             noUsername: "Unnamed user",
@@ -680,6 +1163,26 @@ i18n
                             benefitLeagues: "Create leagues",
                             renewalNote: "Subscription renews automatically at the end of each billing period."
                         },
+                        support: {
+                            title: "Support",
+                            subtitle: "Review your tickets and reports sent to the team.",
+                            openTicket: "Open ticket",
+                            loading: "Loading support history...",
+                            reason: "Reason",
+                            unknownUser: "Unknown user",
+                            unknownGame: "Unknown game",
+                            emptyTickets: "You have not opened any tickets yet.",
+                            emptyUserReports: "You have not reported any players yet.",
+                            emptyGameReports: "You have not reported any games yet.",
+                            tabs: {
+                                tickets: "Tickets",
+                                users: "Players",
+                                games: "Games"
+                            },
+                            status: {
+                                pending: "Pending"
+                            }
+                        },
                         security: {
                             title: "Security",
                             personalSection: "Personal account",
@@ -694,6 +1197,7 @@ i18n
                             reportPlayer: "Report player",
                             reportGame: "Report game",
                             reportIncident: "Report incident",
+                            openTicket: "Open ticket",
                             friendPrivacy: "Friend request privacy",
                             requestsEnabled: "Receiving requests",
                             requestsBlocked: "Requests blocked",
@@ -758,6 +1262,24 @@ i18n
                                     inappropriate: "Inappropriate content",
                                     brokenLink: "Won't load or broken link",
                                     copyright: "Copyright issue",
+                                    other: "Other"
+                                }
+                            },
+                            ticketModal: {
+                                title: "Open support ticket",
+                                subject: "Subject",
+                                subjectPlaceholder: "Example: Problem starting a match",
+                                category: "Category",
+                                message: "Description",
+                                messagePlaceholder: "Tell us what is happening with as much detail as possible...",
+                                requiredFields: "Subject and description are required.",
+                                createError: "The ticket could not be opened.",
+                                created: "Ticket {{ticketNumber}} opened successfully.",
+                                submit: "Send ticket",
+                                categories: {
+                                    technical: "Technical issue",
+                                    payments: "Payments and billing",
+                                    abuse: "Report abuse",
                                     other: "Other"
                                 }
                             }
@@ -830,9 +1352,187 @@ i18n
                     nav: {
                         games: "游戏",
                         ranking: "排行榜",
+                        stats: "统计数据",
                         chat: "聊天",
                         account: "账户",
                         logout: "退出登录"
+                    },
+                    admin: {
+                        management: "管理",
+                        panelButton: "管理",
+                        panelTitle: "管理面板",
+                        panelSubtitle: "平台集中管理。",
+                        dashboard: "面板",
+                        devRequests: "开发者申请",
+                        pendingTickets: "待处理工单",
+                        pendingSuggestions: "审核中建议",
+                        pendingDevRequests: "待处理开发者申请",
+                        backHome: "返回首页",
+                        loading: "正在加载管理面板...",
+                        requests: {
+                            loading: "正在加载申请...",
+                            title: "开发者申请",
+                            subtitle: "管理通过与拒绝。",
+                            empty: "暂无申请。",
+                            unknownUser: "未知用户",
+                            accept: "通过",
+                            reject: "拒绝"
+                        },
+                        wordFilterPage: {
+                            loading: "加载中...",
+                            title: "聊天过滤",
+                            subtitle: "管理自动屏蔽的敏感词。",
+                            placeholder: "输入词语",
+                            add: "添加",
+                            added: "词语已加入过滤",
+                            deleted: "词语已删除"
+                        },
+                        suggestionsPage: {
+                            checking: "正在验证权限...",
+                            accessDenied: "拒绝访问",
+                            accessDeniedDesc: "此区域仅限开发者",
+                            title: "建议面板",
+                            subtitle: "管理社区建议与反馈",
+                            total_one: "总计：{{count}} 条消息",
+                            total_other: "总计：{{count}} 条消息",
+                            empty: "暂无建议",
+                            unknownUser: "未知用户",
+                            reviewing: "审核中",
+                            accept: "通过",
+                            reject: "丢弃"
+                        },
+                        ticketsPage: {
+                            loading: "正在加载支持面板...",
+                            accessDenied: "拒绝访问",
+                            accessDeniedDesc: "此区域仅限支持团队和开发者",
+                            title: "支持面板",
+                            subtitle: "管理并处理用户工单",
+                            empty: "没有符合筛选条件的工单",
+                            unknownUser: "未知用户",
+                            reviewing: "审核中",
+                            resolve: "标记为已解决"
+                        },
+                        formulasPage: {
+                            title: "公式实验室",
+                            subtitle: "实时调整游戏经济与得分规则。",
+                            previewTitle: "倍率预览",
+                            points: "分",
+                            previewText: {
+                                beforeScore: "如果玩家当前赢得一局",
+                                beforeMultiplier: "按当前倍率",
+                                beforeTotal: "将获得总计",
+                                afterTotal: "用于排行榜。"
+                            },
+                            success: "公式已更新并实时生效！",
+                            error: "保存配置时发生错误。",
+                            saving: "保存中...",
+                            saveApply: "保存并应用公式"
+                        },
+                        formulas: "公式",
+                        tickets: "工单",
+                        suggestions: "建议",
+                        wordFilter: "词语过滤"
+                    },
+                    developer: {
+                        layout: {
+                            loading: "正在加载开发者面板…",
+                            portalBadge: "Developer Portal",
+                            title: "开发者面板",
+                            subtitle: "管理并追踪你对 M4G 的贡献。",
+                            backHome: "返回首页",
+                            contactPrompt: "有疑问或问题？",
+                            contactLink: "联系团队",
+                            nav: { dashboard: "面板", games: "我的游戏", stats: "统计" }
+                        },
+                        status: {
+                            published: "已发布", review: "审核中", rejected: "已拒绝",
+                            draft: "草稿", inactive: "未激活", unknown: "未知"
+                        },
+                        dashboard: {
+                            verifiedBadge: "已认证开发者",
+                            welcome: "欢迎加入",
+                            welcomeDesc: "在这里你可以管理游戏、跟踪进展并查阅官方文档。",
+                            manualLink: "开发者手册",
+                            cards: { total: "总计", published: "已发布", review: "审核中", rejected: "已拒绝" },
+                            drafts_one: "{{count}} 个草稿游戏",
+                            drafts_other: "{{count}} 个草稿游戏",
+                            draftsDesc: "待提交审核",
+                            viewGames: "查看游戏",
+                            recentTitle: "最近的游戏",
+                            noGames: "你还没有上传任何游戏。"
+                        },
+                        games: {
+                            title: "我的游戏",
+                            count_one: "{{count}} 款游戏", count_other: "{{count}} 款游戏",
+                            addGame: "添加游戏",
+                            emptyTitle: "你还没有发布任何游戏",
+                            emptyDesc: "立即开始，在 M4G 吸引数千玩家。",
+                            publishFirst: "发布我的第一款游戏",
+                            noDescription: "暂无描述", play: "游玩", edit: "编辑"
+                        },
+                        stats: {
+                            title: "我的游戏统计",
+                            empty: "没有可显示统计的游戏。",
+                            totalPlays: "总对局数", uniquePlayers: "独立玩家数", avgRating: "平均评分",
+                            chartTitle: "各游戏对局数", tableTitle: "各游戏详情",
+                            colGame: "游戏", colPlays: "对局数", colUnique: "独立玩家", colRating: "评分"
+                        },
+                        manual: {
+                            backToPanel: "返回面板",
+                            title: "开发者手册",
+                            subtitle: "M4G 官方技术文档，专供已认证开发者使用。",
+                            searchPlaceholder: "搜索手册…",
+                            results_one: "找到 {{count}} 个板块，关键词：",
+                            results_other: "找到 {{count}} 个板块，关键词：",
+                            noResults: "没有与搜索匹配的板块。",
+                            clearSearch: "清除搜索",
+                            footerText: "M4G 开发者手册 · 最后更新：2026年5月 ·",
+                            footerLink: "内容过时？告诉我们"
+                        },
+                        gameEdit: {
+                            loading: "正在加载游戏…", notFound: "未找到游戏。",
+                            backToGames: "返回我的游戏", pageTitle: "编辑游戏",
+                            save: "保存更改", saving: "保存中…",
+                            saved: "游戏更新成功", saveError: "保存出错",
+                            notFoundError: "未找到游戏", permissionError: "你没有权限编辑此游戏",
+                            nameRequired: "名称为必填项",
+                            sections: { basic: "基本信息", urlDist: "游戏 URL 和分发", thumbnail: "封面图", rules: "规则文档", publication: "发布" },
+                            fields: { title: "游戏标题", description: "描述", version: "版本", minAge: "最低年龄", price: "价格 (€)", genre: "类型", modes: "游戏模式", url: "托管 URL", dist: "游戏 Dist", thumbnail: "缩略图", rules: "新文档", currentStatus: "当前状态" },
+                            hints: { version: "例：1.0.0", minAge: "0 = 不限年龄", price: "0 = 免费", url: "必须是 HTTPS。如直接上传 dist 可留空。", dist: ".html、.js、.zip — HTML 将用作 game_url", thumbnail: "JPG、PNG 或 WebP · 最小 800×600", rules: "PDF、DOC、DOCX、TXT、MD" },
+                            sendToReview: "提交审核",
+                            free: "免费", forAll: "全年龄",
+                            orUpload: "或上传游戏文件",
+                            viewCurrentDoc: "查看当前文档",
+                            statusNote: "状态只能由 M4G 团队更改。如需申请可见性变更，",
+                            contactLink: "联系团队",
+                            change: "更换", removeFile: "移除文件", clickOrDrag: "点击或拖拽至此",
+                            slugLabel: "Slug",
+                            storageNote: "文件存储于"
+                        },
+                        gameNew: {
+                            pageTitle: "发布新游戏", backToPortal: "返回开发者门户",
+                            steps: { info: "基本信息", technical: "技术", assets: "资源", review: "审阅" },
+                            stepTitles: { info: "基本信息", technical: "技术细节", assets: "游戏资源", review: "审阅与发布" },
+                            buttons: { next: "下一步", back: "上一步", submit: "发布游戏", submitting: "发布中…" },
+                            validation: {
+                                titleRequired: "标题为必填项。",
+                                urlOrFile: "必须提供 URL 或上传游戏文件。",
+                                urlHttps: "游戏 URL 必须使用 HTTPS。",
+                                thumbnailRequired: "封面图为必填项。",
+                                rulesFormat: "规则文档必须为 .md 格式",
+                                imageSize: "图片不能超过 2 MB"
+                            },
+                            uploading: "正在上传文件…", creating: "正在创建游戏…",
+                            success: "游戏已提交审核！", error: "发布游戏时出错",
+                            review: { name: "名称", description: "描述", genre: "类型", modes: "模式", version: "版本", minAge: "最低年龄", price: "价格", urlDist: "URL / Dist", rules: "规则 (.md)", thumbnail: "封面图" },
+                            values: { forAll: "全年龄", free: "免费", notSpecified: "未指定", notIndicated: "未填写", withoutDoc: "无文档", urlConfigured: "URL 配置正确。", fileSelected: "已选择文件：{{name}}" },
+                            orUpload: "或上传游戏文件",
+                            rulesOptional: "规则文档（可选）",
+                            stepOf: "步骤 {{step}} / {{total}}", percentComplete: "已完成 {{percent}}%",
+                            reviewTitle: "游戏数据",
+                            initialStatus: "初始状态：草稿。M4G 团队将在发布前进行审核。",
+                            change: "更换", removeFile: "移除文件", clickOrDrag: "点击或拖拽至此"
+                        }
                     },
                     footer: {
                         description: "发现、玩耍和分享您最喜爱的游戏体验的终极平台。",
@@ -916,6 +1616,24 @@ i18n
                             needAnotherLink: "需要新的恢复链接？",
                             backToRecover: "返回找回密码"
                         }
+                    },
+                    contact: {
+                        title: "意见箱",
+                        subtitle: "用你的想法或问题报告帮助我们改进 Make4Gamers。",
+                        categoryLabel: "这是什么类型的消息？",
+                        categories: {
+                            idea: "我有一个想法或改进建议",
+                            bug: "我发现了一个错误",
+                            support: "我需要平台帮助",
+                            other: "其他主题"
+                        },
+                        contentLabel: "消息详情",
+                        contentPlaceholder: "请详细说明...",
+                        submit: "发送消息",
+                        submitting: "发送中...",
+                        successMessage: "谢谢！您的消息已发送给开发团队。",
+                        errorAuth: "您必须登录才能发送建议。",
+                        errorGeneric: "发送消息时出错，请重试。"
                     },
                     game: {
                         popular: "热门游戏",
@@ -1047,7 +1765,11 @@ i18n
                             personal: "个人信息",
                             friends: "好友",
                             payments: "支付",
-                            security: "安全"
+                            security: "安全",
+                            support: "支持",
+                            matches: "对局",
+                            stats: "统计",
+                            achievements: "成就"
                         },
                         dashboard: {
                             defaultUser: "用户",
@@ -1059,7 +1781,29 @@ i18n
                             vs: "对战",
                             defaultOpponent: "未知对手",
                             status: "状态",
-                            finished: "已结束"
+                            finished: "已结束",
+                            bestRecords: "我的最佳纪录",
+                            achievements: "我的成就",
+                            noAchievements: "你还没有解锁任何成就。",
+                            achievementFallbackTitle: "已解锁成就",
+                            achievementFallbackDescription: "该成就暂无详细说明。",
+                            recentGames: "最近对局",
+                            noRecentGames: "没有记录的对局。",
+                            score: "分数"
+                        },
+                        stats: {
+                            title: "统计",
+                            subtitle: "你的游戏表现详细分析。",
+                            totalMatches: "总对局",
+                            highestScore: "最高分",
+                            favoriteGame: "最常玩游戏",
+                            favoriteGamePlays: "已玩 {{count}} 场",
+                            gamesChart: "各游戏对局数",
+                            recentActivity: "最近活动",
+                            matches: "对局",
+                            emptyTitle: "暂无统计数据",
+                            emptyDescription: "先玩几场游戏，就能看到你的统计图表。",
+                            emptyActivity: "暂无最近活动。"
                         },
                         personal: {
                             noUsername: "未命名用户",
@@ -1088,6 +1832,26 @@ i18n
                             benefitEarlyAccess: "可提前体验游戏",
                             benefitLeagues: "可创建联赛",
                             renewalNote: "订阅将在每个计费周期结束时自动续费。"
+                        },
+                        support: {
+                            title: "支持",
+                            subtitle: "查看你发送给团队的工单和举报。",
+                            openTicket: "打开工单",
+                            loading: "正在加载支持历史...",
+                            reason: "原因",
+                            unknownUser: "未知用户",
+                            unknownGame: "未知游戏",
+                            emptyTickets: "你还没有打开任何工单。",
+                            emptyUserReports: "你还没有举报任何玩家。",
+                            emptyGameReports: "你还没有举报任何游戏。",
+                            tabs: {
+                                tickets: "工单",
+                                users: "玩家",
+                                games: "游戏"
+                            },
+                            status: {
+                                pending: "待处理"
+                            }
                         },
                         security: {
                             title: "安全",

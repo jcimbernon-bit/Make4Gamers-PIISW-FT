@@ -1,4 +1,5 @@
 import type { MatchPlayer } from "../hooks/useActiveMatch";
+import AvatarPlaceholder from "../../../shared/components/AvatarPlaceholder";
 
 type Props = {
   players: MatchPlayer[];
@@ -16,13 +17,9 @@ function PlayerAvatar({
   isCurrentUser: boolean;
   isActiveTurn: boolean;
 }) {
-  const initials = player.username
-    ? player.username.slice(0, 2).toUpperCase()
-    : "?";
-
   return (
     <div className="flex items-center gap-2.5">
-      {/* Avatar con borde de turno */}
+      {/* Avatar */}
       <div className="relative">
         {player.avatar_url ? (
           <img
@@ -30,53 +27,41 @@ function PlayerAvatar({
             alt={player.username ?? "jugador"}
             className={`w-9 h-9 rounded-full object-cover transition-all duration-300 ${
               isActiveTurn
-                ? "border-2 border-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.6)]"
+                ? "border-2 border-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.5)]"
                 : "border-2 border-slate-700"
             }`}
           />
         ) : (
           <div
-            className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${
+            className={`rounded-full transition-all duration-300 ${
               isActiveTurn
-                ? "bg-yellow-400/20 border-2 border-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.6)]"
-                : "bg-indigo-600/30 border-2 border-slate-700"
+                ? "border-2 border-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.5)]"
+                : "border-2 border-slate-700"
             }`}
           >
-            <span
-              className={`text-xs font-bold ${isActiveTurn ? "text-yellow-300" : "text-indigo-300"}`}
-            >
-              {initials}
-            </span>
+            <AvatarPlaceholder name={player.username ?? "?"} size={36} />
           </div>
         )}
-
-        {/* Punto de estado: parpadea si es su turno */}
+        {/* Indicador de turno */}
         <span
-          className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-slate-900 ${
+          className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-slate-900 transition-colors duration-300 ${
             isActiveTurn ? "bg-yellow-400 animate-pulse" : "bg-slate-600"
           }`}
         />
       </div>
 
-      {/* Nombre + etiqueta */}
+      {/* Nombre + estado */}
       <div className="flex flex-col leading-none gap-0.5">
-        <span className="text-sm font-semibold text-white">
+        <span className={`text-sm font-semibold ${isCurrentUser ? "text-indigo-300" : "text-white"}`}>
           {player.username ?? "Jugador"}
+          {isCurrentUser && <span className="ml-1 text-[10px] text-indigo-400 font-normal">(tú)</span>}
         </span>
         <span
-          className={`text-[10px] font-medium ${
-            isActiveTurn
-              ? "text-yellow-400"
-              : "text-slate-500"
+          className={`text-[10px] font-medium transition-colors duration-300 ${
+            isActiveTurn ? "text-yellow-400" : "text-slate-500"
           }`}
         >
-          {isActiveTurn
-            ? isCurrentUser
-              ? "Tu turno"
-              : "Su turno"
-            : isCurrentUser
-              ? "Tú"
-              : "Esperando"}
+          {isActiveTurn ? "Tu turno" : "Esperando"}
         </span>
       </div>
     </div>
@@ -91,40 +76,46 @@ export default function PlayersBar({
 }: Props) {
   if (loading) {
     return (
-      <div className="flex items-center gap-4 px-4 py-2.5 rounded-xl bg-slate-900/60 border border-slate-800 mb-3">
-        <div className="w-9 h-9 rounded-full bg-slate-800 animate-pulse" />
-        <div className="h-3 w-20 rounded bg-slate-800 animate-pulse" />
-        <div className="h-3 w-6 rounded bg-slate-800 animate-pulse mx-2" />
-        <div className="w-9 h-9 rounded-full bg-slate-800 animate-pulse" />
-        <div className="h-3 w-20 rounded bg-slate-800 animate-pulse" />
+      <div className="w-full flex items-center gap-4 px-5 py-3 rounded-xl bg-slate-900/60 border border-slate-800">
+        {[0, 1].map((i) => (
+          <div key={i} className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-full bg-slate-800 animate-pulse" />
+            <div className="flex flex-col gap-1">
+              <div className="h-3 w-20 rounded bg-slate-800 animate-pulse" />
+              <div className="h-2 w-12 rounded bg-slate-800 animate-pulse" />
+            </div>
+          </div>
+        ))}
       </div>
     );
   }
 
   if (!players.length) return null;
 
-  return (
-    <div className="flex items-center gap-5 px-4 py-2.5 rounded-xl bg-slate-900/60 border border-slate-800 mb-3">
-      {players.map((player, i) => {
-        // El que tiene el turno activo es el que NO hizo el último movimiento
-        const isActiveTurn =
-          lastMovedPlayerId !== null && player.id !== lastMovedPlayerId;
+  // Intercalar jugadores con separadores "vs"
+  const items = players.flatMap((player, i) => {
+    const isActiveTurn = lastMovedPlayerId !== null && player.id !== lastMovedPlayerId;
+    const el = [
+      <PlayerAvatar
+        key={player.id}
+        player={player}
+        isCurrentUser={player.id === currentUserId}
+        isActiveTurn={isActiveTurn}
+      />,
+    ];
+    if (i < players.length - 1) {
+      el.push(
+        <span key={`vs-${i}`} className="text-[11px] font-bold text-slate-600 uppercase tracking-widest select-none">
+          vs
+        </span>,
+      );
+    }
+    return el;
+  });
 
-        return (
-          <div key={player.id} className="flex items-center gap-5">
-            <PlayerAvatar
-              player={player}
-              isCurrentUser={player.id === currentUserId}
-              isActiveTurn={isActiveTurn}
-            />
-            {i < players.length - 1 && (
-              <span className="text-xs font-bold text-slate-600 uppercase tracking-widest">
-                vs
-              </span>
-            )}
-          </div>
-        );
-      })}
+  return (
+    <div className="w-full flex items-center justify-between px-5 py-3 rounded-xl bg-slate-900/60 border border-slate-800/80 shadow-sm shadow-black/20">
+      {items}
     </div>
   );
 }

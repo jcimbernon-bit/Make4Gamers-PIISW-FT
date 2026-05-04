@@ -9,6 +9,7 @@ export default defineConfig(({ mode }) => ({
   },
   base: mode === "production" ? "/Make4Gamers-PIISW/" : "/",
   server: {
+    host: true,
     fs: {
       allow: ['..']
     }

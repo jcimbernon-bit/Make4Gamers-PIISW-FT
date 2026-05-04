@@ -45,7 +45,7 @@ function Layout() {
                         .from('profiles')
                         .select('username')
                         .eq('id', newMessage.sender_id)
-                        .single();
+                        .maybeSingle();
 
                     const senderName = senderData?.username || "Alguien";
 

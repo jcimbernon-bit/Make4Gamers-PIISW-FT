@@ -1,12 +1,14 @@
 import { useState, type FormEvent } from 'react';
-import { Send, MessageSquare, Lightbulb, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Send, MessageSquare, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { supabase } from '../supabase';
 
 export default function Contacto() {
+  const { t } = useTranslation();
   const [category, setCategory] = useState('Idea/Mejora');
   const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [feedback, setFeedback] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -15,30 +17,21 @@ export default function Contacto() {
 
     try {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
-      
+
       if (authError || !user) {
-        throw new Error("Debes iniciar sesión para enviar una sugerencia.");
+        throw new Error(t('contact.errorAuth'));
       }
 
-      // Guardar en la BBDD
       const { error: insertError } = await supabase
         .from('suggestions')
-        .insert([
-          {
-            user_id: user.id,
-            category: category,
-            content: content
-          }
-        ]);
+        .insert([{ user_id: user.id, category, content }]);
 
       if (insertError) throw insertError;
 
-      setFeedback({ type: 'success', message: '¡Gracias! Tu mensaje ha sido enviado al equipo de desarrollo.' });
+      setFeedback({ type: 'success', message: t('contact.successMessage') });
       setContent('');
-      
     } catch (error: any) {
-      console.error("Error al enviar sugerencia:", error);
-      setFeedback({ type: 'error', message: error.message || 'Hubo un error al enviar tu mensaje. Inténtalo de nuevo.' });
+      setFeedback({ type: 'error', message: error.message || t('contact.errorGeneric') });
     } finally {
       setIsSubmitting(false);
     }
@@ -52,13 +45,17 @@ export default function Contacto() {
             <MessageSquare size={28} />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-white">Buzón de Sugerencias</h1>
-            <p className="text-slate-400 mt-1">Ayúdanos a mejorar Make4Gamers con tus ideas o reportando fallos.</p>
+            <h1 className="text-3xl font-bold text-white">{t('contact.title')}</h1>
+            <p className="text-slate-400 mt-1">{t('contact.subtitle')}</p>
           </div>
         </div>
 
         {feedback && (
-          <div className={`p-4 mb-6 rounded-lg flex items-center gap-3 ${feedback.type === 'success' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
+          <div className={`p-4 mb-6 rounded-lg flex items-center gap-3 ${
+            feedback.type === 'success'
+              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+              : 'bg-red-500/10 text-red-400 border border-red-500/20'
+          }`}>
             {feedback.type === 'success' ? <CheckCircle2 size={20} /> : <AlertTriangle size={20} />}
             <p>{feedback.message}</p>
           </div>
@@ -67,49 +64,47 @@ export default function Contacto() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label htmlFor="category" className="block text-sm font-medium text-slate-300 mb-2">
-              ¿Qué tipo de mensaje es?
+              {t('contact.categoryLabel')}
             </label>
-            <select 
+            <select
               id="category"
               value={category}
-              onChange={(e) => setCategory(e.target.value)}
+              onChange={e => setCategory(e.target.value)}
               className="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-3 focus:outline-none focus:border-indigo-500 transition-colors"
             >
-              <option value="Idea/Mejora">Tengo una idea o sugerencia de mejora</option>
-              <option value="Bug/Error">He encontrado un error</option>
-              <option value="Duda/Soporte">Necesito ayuda con la plataforma</option>
-              <option value="Otro">Otro tema</option>
+              <option value="Idea/Mejora">{t('contact.categories.idea')}</option>
+              <option value="Bug/Error">{t('contact.categories.bug')}</option>
+              <option value="Duda/Soporte">{t('contact.categories.support')}</option>
+              <option value="Otro">{t('contact.categories.other')}</option>
             </select>
           </div>
 
-          {/* Área de Texto */}
           <div>
             <label htmlFor="content" className="block text-sm font-medium text-slate-300 mb-2">
-              Detalles de tu mensaje
+              {t('contact.contentLabel')}
             </label>
-            <textarea 
+            <textarea
               id="content"
               value={content}
-              onChange={(e) => setContent(e.target.value)}
+              onChange={e => setContent(e.target.value)}
               required
               rows={5}
-              placeholder="Explícanos con detalle..."
+              placeholder={t('contact.contentPlaceholder')}
               className="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-3 focus:outline-none focus:border-indigo-500 transition-colors resize-none"
-            ></textarea>
+            />
           </div>
-          
-          {/* Enviar */}
-          <button 
-            type="submit" 
+
+          <button
+            type="submit"
             disabled={isSubmitting || !content.trim()}
             className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
           >
             {isSubmitting ? (
-              'Enviando...'
+              t('contact.submitting')
             ) : (
               <>
                 <Send size={18} />
-                Enviar Mensaje
+                {t('contact.submit')}
               </>
             )}
           </button>

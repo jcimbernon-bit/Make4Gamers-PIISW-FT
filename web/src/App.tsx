@@ -16,11 +16,12 @@ import Cuenta from './pages/Cuenta';
 import GameRules from "./pages/GameRules";
 import Ayuda from './pages/Ayuda';
 import Contacto from './pages/Contacto';
-import AdminSugerencias from './pages/AdminSugerencias';
-import AdminTickets from './pages/AdminTickets';
-import AdminFiltro from './pages/AdminFiltro';
 import Estadisticas from './pages/Estadisticas';
-import AdminFormulas from './pages/AdminFormulas';
+import Admin from './pages/Admin';
+import Developer from './pages/Developer';
+import DevManual from './pages/DevManual';
+import DevGameEdit from './pages/DevGameEdit';
+import DevGameNew from './pages/DevGameNew';
 function App() {
   return (
     <>
@@ -44,10 +45,11 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/recuperar-password" element={<RecuperarPassword />} />
           <Route path="/actualizar-password" element={<ActualizarPassword />} />
-          <Route path="/admin/sugerencias" element={<AdminSugerencias />} />
-          <Route path="/admin/tickets" element={<AdminTickets />} />
-          <Route path="/admin/filtro" element={<AdminFiltro />} />
-          <Route path="/admin/formulas" element={<AdminFormulas />} />
+          <Route path="/admin" element={<Admin />} />
+          <Route path="/developer" element={<Developer />} />
+          <Route path="/dev-manual" element={<DevManual />} />
+          <Route path="/dev-game/:id" element={<DevGameEdit />} />
+          <Route path="/dev-game-new" element={<DevGameNew />} />
 
           {/* Main */}
           <Route element={<Layout />}>

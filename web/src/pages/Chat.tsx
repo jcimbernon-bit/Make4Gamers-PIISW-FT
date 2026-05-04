@@ -9,6 +9,8 @@ import type { ChatProfile } from '../features/chat/types/chat.types';
 import AddFriendModal from '../features/chat/components/AddFriendModal'; 
 import { Plus } from 'lucide-react'; 
 import { useTranslation } from 'react-i18next';
+import CreateGroupModal from '../features/chat/components/CreateGroupModal';
+import { Users } from 'lucide-react';
 
 export default function Chat() {
     const { t } = useTranslation();
@@ -21,8 +23,7 @@ export default function Chat() {
     const [isCheckingAuth, setIsCheckingAuth] = useState(true); 
     const [isAddFriendOpen, setIsAddFriendOpen] = useState(false);
     const [refreshFriends, setRefreshFriends] = useState(0); 
-
-
+    const [isCreateGroupOpen, setIsCreateGroupOpen] = useState(false);
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -83,6 +84,17 @@ export default function Chat() {
         };
     }, []);
 
+    const handleSelectEntity = async (entity: ChatProfile) => {
+        setSelectedFriend(entity);
+        setLoadingRoom(true);
+        if (entity.room_id) {
+            setRoomId(entity.room_id);
+        } else {
+            const room = await getOrCreateChatRoom(currentUserId!, entity.id);
+            setRoomId(room);
+        }
+        setLoadingRoom(false);
+    }
     
     const handleStatusChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
         const newStatus = e.target.value;
@@ -97,14 +109,20 @@ export default function Chat() {
 
     const handleSelectFriend = async (friend: ChatProfile) => {
         setSelectedFriend(friend);
-        if (!currentUserId) return;
-        
         setLoadingRoom(true);
-        const id = await getOrCreateChatRoom(currentUserId, friend.id);
-        setRoomId(id);
-        setLoadingRoom(false);
+        
+        if (currentUserId) {
+            if (friend.is_group) {
+                console.log("Cargando sala de grupo:", friend.id);
+                setRoomId(friend.id); 
+                setLoadingRoom(false);
+            } else {
+                const id = await getOrCreateChatRoom(currentUserId, friend.id);
+                setRoomId(id);
+                setLoadingRoom(false);
+            }
+        }
     };
-
 
     useEffect(() => {
         const autoOpenChat = async () => {
@@ -177,16 +195,28 @@ if (!currentUserId) {
                         </select>
                     </div>
 
-{/* Cabecera de Mensajes */}
+                    {/* Cabecera de Mensajes */}
                     <div className="p-4 border-b border-slate-700/50 bg-slate-800 flex justify-between items-center">
                         <h2 className="text-xl font-bold text-white">{t('chat.messagesTitle')}</h2>
-                        <button 
-                            onClick={() => setIsAddFriendOpen(true)}
-                            className="p-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-all active:scale-90"
-                            title={t('chat.addFriendTooltip')}
-                        >
-                            <Plus size={20} />
-                        </button>
+                        
+                        <div className="flex items-center gap-2">
+                            <button 
+                                onClick={() => setIsCreateGroupOpen(true)}
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-all active:scale-90 text-sm font-medium"
+                                title="Crear Nuevo Grupo"
+                            >
+                                <Users size={16} />
+                                <span className="hidden sm:inline">Grupo</span>
+                            </button>
+
+                            <button 
+                                onClick={() => setIsAddFriendOpen(true)}
+                                className="p-1.5 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-all active:scale-90"
+                                title={t('chat.addFriendTooltip')}
+                            >
+                                <Plus size={20} />
+                            </button>
+                        </div>
                     </div>
                     
                     {/* Lista de Amigos */}
@@ -194,7 +224,7 @@ if (!currentUserId) {
                         <FriendList 
                             key={refreshFriends} 
                             currentUserId={currentUserId} 
-                            onSelectFriend={handleSelectFriend}
+                            onSelectFriend={handleSelectEntity}
                             selectedFriendId={selectedFriend?.id}
                         />
                     </div>
@@ -232,7 +262,20 @@ if (!currentUserId) {
                     onClose={() => setIsAddFriendOpen(false)}
                     onFriendAdded={() => setRefreshFriends(prev => prev + 1)}
                 />
+                
             )}
-        </section>
+            {isCreateGroupOpen && (
+                <CreateGroupModal
+                    currentUserId={currentUserId}
+                    onClose={() => setIsCreateGroupOpen(false)}
+                    onGroupCreated={(newRoomId, groupProfile) => {
+                        setIsCreateGroupOpen(false);
+                        setRefreshFriends(prev => prev + 1);
+                        setSelectedFriend(groupProfile);
+                        setRoomId(newRoomId);
+                    }}
+                />
+            )}
+        </section>  
     );
 }

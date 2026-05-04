@@ -11,9 +11,10 @@ export function useChatMessages(roomId: string | null, currentUserId: string | n
         if (!roomId || !currentUserId) return;
 
         const fetchMessages = async () => {
+            // ✨ CAMBIO: Seleccionamos '*' y también los datos del perfil relacionado
             const { data, error } = await supabase
                 .from('messages')
-                .select('*')
+                .select('*, profiles(username, avatar_url)')
                 .eq('room_id', roomId)
                 .order('created_at', { ascending: true });
 
@@ -21,7 +22,6 @@ export function useChatMessages(roomId: string | null, currentUserId: string | n
                 console.error("Error cargando historial:", error);
             } else {
                 setMessages(data as Message[]);
-               
                 await markMessagesAsRead(roomId, currentUserId);
             }
             setLoading(false);
@@ -29,35 +29,39 @@ export function useChatMessages(roomId: string | null, currentUserId: string | n
 
         fetchMessages();
 
-       
         const channel = supabase.channel(`room_${roomId}`)
             .on('postgres_changes', {
-                event: '*',
+                event: 'INSERT', // Solo nos interesa el INSERT para nuevos mensajes
                 schema: 'public',
-                table: 'messages' 
-            }, (payload) => {
+                table: 'messages',
+                filter: `room_id=eq.${roomId}`
+            }, async (payload) => {
+                const newMessage = payload.new as Message;
                 
-                if (payload.eventType === 'INSERT') {
-                    const newMessage = payload.new as Message;
-                   
-                    if (newMessage.room_id === roomId) {
-                        setMessages((prev) => [...prev, newMessage]);
-                        
-                        if (newMessage.sender_id !== currentUserId) {
-                            markMessagesAsRead(roomId, currentUserId);
-                        }
-                    }
+                // ✨ CAMBIO: Como Realtime no trae el join automáticamente, 
+                // hacemos una pequeña consulta para obtener el nombre del emisor
+                const { data: profileData } = await supabase
+                    .from('profiles')
+                    .select('username, avatar_url')
+                    .eq('id', newMessage.sender_id)
+                    .single();
+
+                const messageWithProfile = {
+                    ...newMessage,
+                    profiles: profileData || { username: 'Usuario', avatar_url: null }
+                };
+
+                setMessages((prev) => [...prev, messageWithProfile]);
+                
+                if (newMessage.sender_id !== currentUserId) {
+                    markMessagesAsRead(roomId, currentUserId);
                 }
-                else if (payload.eventType === 'UPDATE') {
-                    const partialUpdate = payload.new; 
-                    
-                    
-                    setMessages((prev) => prev.map(msg =>
-                        msg.id === partialUpdate.id
-                            ? { ...msg, ...partialUpdate }
-                            : msg
-                    ));
-                }
+            })
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages' }, (payload) => {
+                const partialUpdate = payload.new;
+                setMessages((prev) => prev.map(msg =>
+                    msg.id === partialUpdate.id ? { ...msg, ...partialUpdate } : msg
+                ));
             })
             .subscribe();
 

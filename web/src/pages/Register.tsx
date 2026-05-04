@@ -93,7 +93,16 @@ export default function Register() {
 
         if (authData.user) {
             setIsSuccess(true);
-            setTimeout(() => navigate('/login'), 3000);
+                const pendingRedirectPath = localStorage.getItem('post_auth_redirect_path');
+                const pendingSection = localStorage.getItem('post_auth_account_section');
+                const shouldRedirectToAccountPayments = pendingRedirectPath === '/cuenta' && pendingSection === 'payments';
+
+                if (shouldRedirectToAccountPayments && authData.session) {
+                    navigate('/cuenta', { state: { initialSection: 'payments' } });
+                    return;
+                }
+
+                setTimeout(() => navigate('/login'), 3000);
         }
 
     } catch (error: any) {

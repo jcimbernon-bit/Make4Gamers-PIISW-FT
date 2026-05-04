@@ -14,7 +14,7 @@ export async function findAccountProfile(
   let lastError: Error | null = null;
 
   for (const fields of PROFILE_FIELDS_CANDIDATES) {
-    const { data, error } = await client.from("profiles").select(fields).eq("id", userId).single();
+    const { data, error } = await client.from("profiles").select(fields).eq("id", userId).maybeSingle();
 
     if (!error && data) {
       return data as unknown as AccountProfile;
@@ -25,7 +25,7 @@ export async function findAccountProfile(
     }
   }
 
-  throw lastError ?? new Error("No se pudo recuperar el perfil");
+  throw lastError ?? new Error("Perfil no encontrado");
 }
 
 export async function patchAccountProfile(
@@ -51,9 +51,9 @@ export async function findRecentGamesByUser(
   limit = 5,
 ): Promise<AccountRecentGameRaw[]> {
   const { data, error } = await client
-    .from("scores")
-    .select("id, score, created_at, game:games(title)")
-    .eq("user_id", userId)
+    .from("matches")
+    .select("id, created_at, game:games(title)")
+    .or(`player_1.eq.${userId},player_2.eq.${userId}`)
     .order("created_at", { ascending: false })
     .limit(limit);
 
@@ -61,7 +61,18 @@ export async function findRecentGamesByUser(
     throw new Error(error.message || "No se pudieron recuperar las partidas recientes");
   }
 
-  return (data ?? []) as AccountRecentGameRaw[];
+  const rows = (data ?? []) as Array<{
+    id: number | string;
+    created_at: string;
+    game: { title: string | null } | Array<{ title: string | null }> | null;
+  }>;
+
+  return rows.map((row) => ({
+    id: row.id,
+    score: null,
+    created_at: row.created_at,
+    game: row.game,
+  }));
 }
 
 export async function findAcceptedFriendsByUser(

@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Trophy, Medal, Crown, Gamepad2, TrendingUp } from 'lucide-react';
-import { useTranslation } from 'react-i18next'; 
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../supabase';
-import { getRankingByGame, getUserRankPosition, getPlayerTier, type RankingEntry } from '../features/ranking/services/ranking.service';
+import { getRankingByGame, getUserRankPosition, type RankingEntry } from '../features/ranking/services/ranking.service';
+import UserAvatar from '../shared/components/UserAvatar';
+import { getTierForScore, getGameControllerData } from '../features/progression/services/progression.service';
+import { Link } from 'react-router-dom';
 
 export default function Ranking() {
     const { t } = useTranslation(); 
@@ -13,6 +16,7 @@ export default function Ranking() {
     const [currentUserRank, setCurrentUserRank] = useState<number | null>(null);
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
+    const currentTitle = games.find(g => g.id === selectedGame)?.title || '';
 
     useEffect(() => {
         const init = async () => {
@@ -98,68 +102,75 @@ export default function Ranking() {
                 ) : (
                     <>
                        
-                        <div className="flex flex-col md:flex-row items-end justify-center gap-4 md:gap-6 pt-10 pb-4">
-                         
-                            {top3[1] && (
-                                <div className="order-2 md:order-1 w-full md:w-64 flex flex-col items-center animate-in slide-in-from-bottom-8 duration-500 delay-100">
-                                    <div className="relative mb-4">
-                                        <img src={top3[1].avatar_url || 'https://via.placeholder.com/150'} alt="Avatar" className="w-20 h-20 rounded-full border-4 border-slate-400 object-cover" />
-                                        <div className="absolute -bottom-3 -right-3 bg-slate-800 rounded-full p-1.5 border border-slate-400">
-                                            <Medal className="text-slate-400" size={20} />
-                                        </div>
+                       <div className="flex flex-col md:flex-row items-end justify-center gap-4 md:gap-6 pt-10 pb-4">
+    
+                        {/* Puesto 2 (Plata) */}
+                        {top3[1] && (
+                            <div className="order-2 md:order-1 w-full md:w-64 flex flex-col items-center animate-in slide-in-from-bottom-8 duration-500 delay-100">
+                                <Link to={`/usuario/${top3[1].username}`} className="relative mb-4 cursor-pointer hover:scale-105 transition-transform group block">
+                                    <UserAvatar src={top3[1].avatar_url} name={top3[1].username} size={80} className="border-4 border-slate-400 group-hover:border-indigo-400 transition-colors" />
+                                    <div className="absolute -bottom-3 -right-3 bg-slate-800 rounded-full p-1.5 border border-slate-400">
+                                        <Medal className="text-slate-400" size={20} />
                                     </div>
-                                    <div className="bg-slate-900/80 border-t-4 border-slate-400 w-full rounded-t-2xl p-4 text-center pb-8 shadow-[0_-10px_30px_rgba(148,163,184,0.05)] flex flex-col items-center">
+                                </Link>
+                                <div className="bg-slate-900/80 border-t-4 border-slate-400 w-full rounded-t-2xl p-4 text-center pb-8 shadow-[0_-10px_30px_rgba(148,163,184,0.05)] flex flex-col items-center">
+                                    <Link to={`/usuario/${top3[1].username}`} className="w-full hover:text-indigo-400 transition-colors block">
                                         <h3 className="font-bold text-lg text-white truncate w-full">{top3[1].username}</h3>
-                                        <p className="text-2xl font-black text-slate-400 mt-1">{top3[1].best_score.toLocaleString()}</p>
-                                      
-                                        <img src={getPlayerTier(top3[1].best_score).icon} alt="Rango" className="h-12 object-contain mt-3 drop-shadow-lg" />
-                                        <span className={`text-xs font-semibold uppercase tracking-wider mt-1 block ${getPlayerTier(top3[1].best_score).color}`}>
-                                            {getPlayerTier(top3[1].best_score).name}
-                                        </span>
-                                    </div>
+                                    </Link>
+                                    <p className="text-2xl font-black text-slate-400 mt-1">{top3[1].best_score.toLocaleString()}</p>
+                                
+                                    <img src={getGameControllerData(getTierForScore(currentTitle, top3[1].best_score)).image} alt="Rango" className="h-12 object-contain mt-3 drop-shadow-lg" />
+                                    <span className={`text-xs font-semibold uppercase tracking-wider mt-1 block ${getGameControllerData(getTierForScore(currentTitle, top3[1].best_score)).color}`}>
+                                        {getGameControllerData(getTierForScore(currentTitle, top3[1].best_score)).name}
+                                    </span>
                                 </div>
-                            )}
+                            </div>
+                        )}
 
-                           
-                            {top3[0] && (
-                                <div className="order-1 md:order-2 w-full md:w-72 flex flex-col items-center animate-in slide-in-from-bottom-12 duration-500 z-10">
-                                    <div className="relative mb-4">
-                                        <Crown className="absolute -top-8 left-1/2 -translate-x-1/2 text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]" size={32} />
-                                        <img src={top3[0].avatar_url || 'https://via.placeholder.com/150'} alt="Avatar" className="w-28 h-28 rounded-full border-4 border-yellow-400 object-cover shadow-[0_0_30px_rgba(250,204,21,0.2)]" />
-                                    </div>
-                                    <div className="bg-gradient-to-b from-yellow-500/10 to-slate-900/80 border-t-4 border-yellow-400 w-full rounded-t-2xl p-5 text-center pb-12 shadow-[0_-10px_40px_rgba(250,204,21,0.1)] flex flex-col items-center">
+                        {/* Puesto 1 (Oro) */}
+                        {top3[0] && (
+                            <div className="order-1 md:order-2 w-full md:w-72 flex flex-col items-center animate-in slide-in-from-bottom-12 duration-500 z-10">
+                                <Link to={`/usuario/${top3[0].username}`} className="relative mb-4 cursor-pointer hover:scale-110 transition-transform group block">
+                                    <Crown className="absolute -top-8 left-1/2 -translate-x-1/2 text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)] z-10" size={32} />
+                                    <UserAvatar src={top3[0].avatar_url} name={top3[0].username} size={112} className="relative z-0 border-4 border-yellow-400 shadow-[0_0_30px_rgba(250,204,21,0.2)] group-hover:border-yellow-300 transition-colors" />
+                                </Link>
+                                <div className="bg-gradient-to-b from-yellow-500/10 to-slate-900/80 border-t-4 border-yellow-400 w-full rounded-t-2xl p-5 text-center pb-12 shadow-[0_-10px_40px_rgba(250,204,21,0.1)] flex flex-col items-center">
+                                    <Link to={`/usuario/${top3[0].username}`} className="w-full hover:text-yellow-400 transition-colors block">
                                         <h3 className="font-bold text-xl text-white truncate w-full">{top3[0].username}</h3>
-                                        <p className="text-3xl font-black text-yellow-400 mt-1">{top3[0].best_score.toLocaleString()}</p>
-                                    
-                                        <img src={getPlayerTier(top3[0].best_score).icon} alt="Rango" className="h-16 object-contain mt-3 drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]" />
-                                        <span className={`text-sm font-bold uppercase tracking-wider mt-1 block ${getPlayerTier(top3[0].best_score).color}`}>
-                                            {getPlayerTier(top3[0].best_score).name}
-                                        </span>
-                                    </div>
+                                    </Link>
+                                    <p className="text-3xl font-black text-yellow-400 mt-1">{top3[0].best_score.toLocaleString()}</p>
+                                
+                                    <img src={getGameControllerData(getTierForScore(currentTitle, top3[0].best_score)).image} alt="Rango" className="h-16 object-contain mt-3 drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]" />
+                                    <span className={`text-sm font-bold uppercase tracking-wider mt-1 block ${getGameControllerData(getTierForScore(currentTitle, top3[0].best_score)).color}`}>
+                                        {getGameControllerData(getTierForScore(currentTitle, top3[0].best_score)).name}
+                                    </span>
                                 </div>
-                            )}
+                            </div>
+                        )}
 
-                         
-                            {top3[2] && (
-                                <div className="order-3 md:order-3 w-full md:w-64 flex flex-col items-center animate-in slide-in-from-bottom-4 duration-500 delay-200">
-                                    <div className="relative mb-4">
-                                        <img src={top3[2].avatar_url || 'https://via.placeholder.com/150'} alt="Avatar" className="w-20 h-20 rounded-full border-4 border-amber-700 object-cover" />
-                                        <div className="absolute -bottom-3 -right-3 bg-slate-800 rounded-full p-1.5 border border-amber-700">
-                                            <Medal className="text-amber-700" size={20} />
-                                        </div>
+                        {/* Puesto 3 (Bronce) */}
+                        {top3[2] && (
+                            <div className="order-3 md:order-3 w-full md:w-64 flex flex-col items-center animate-in slide-in-from-bottom-4 duration-500 delay-200">
+                                <Link to={`/usuario/${top3[2].username}`} className="relative mb-4 cursor-pointer hover:scale-105 transition-transform group block">
+                                    <UserAvatar src={top3[2].avatar_url} name={top3[2].username} size={80} className="border-4 border-amber-700 group-hover:border-amber-500 transition-colors" />
+                                    <div className="absolute -bottom-3 -right-3 bg-slate-800 rounded-full p-1.5 border border-amber-700">
+                                        <Medal className="text-amber-700" size={20} />
                                     </div>
-                                    <div className="bg-slate-900/80 border-t-4 border-amber-700 w-full rounded-t-2xl p-4 text-center pb-6 shadow-[0_-10px_30px_rgba(180,83,9,0.05)] flex flex-col items-center">
+                                </Link>
+                                <div className="bg-slate-900/80 border-t-4 border-amber-700 w-full rounded-t-2xl p-4 text-center pb-6 shadow-[0_-10px_30px_rgba(180,83,9,0.05)] flex flex-col items-center">
+                                    <Link to={`/usuario/${top3[2].username}`} className="w-full hover:text-amber-500 transition-colors block">
                                         <h3 className="font-bold text-lg text-white truncate w-full">{top3[2].username}</h3>
-                                        <p className="text-2xl font-black text-amber-600 mt-1">{top3[2].best_score.toLocaleString()}</p>
-                                    
-                                        <img src={getPlayerTier(top3[2].best_score).icon} alt="Rango" className="h-12 object-contain mt-3 drop-shadow-lg" />
-                                        <span className={`text-xs font-semibold uppercase tracking-wider mt-1 block ${getPlayerTier(top3[2].best_score).color}`}>
-                                            {getPlayerTier(top3[2].best_score).name}
-                                        </span>
-                                    </div>
+                                    </Link>
+                                    <p className="text-2xl font-black text-amber-600 mt-1">{top3[2].best_score.toLocaleString()}</p>
+                                
+                                    <img src={getGameControllerData(getTierForScore(currentTitle, top3[2].best_score)).image} alt="Rango" className="h-12 object-contain mt-3 drop-shadow-lg" />
+                                    <span className={`text-xs font-semibold uppercase tracking-wider mt-1 block ${getGameControllerData(getTierForScore(currentTitle, top3[2].best_score)).color}`}>
+                                        {getGameControllerData(getTierForScore(currentTitle, top3[2].best_score)).name}
+                                    </span>
                                 </div>
-                            )}
-                        </div>
+                            </div>
+                        )}
+                    </div>
 
 
                         {restOfRanking.length > 0 && (
@@ -172,25 +183,39 @@ export default function Ranking() {
                                 </div>
                                 <div className="divide-y divide-slate-800/50">
                                     {restOfRanking.map((entry, index) => {
+                                        const currentTitle = games.find(g => g.id === selectedGame)?.title || '';
                                         const rankNumber = index + 4; 
-                                        const tier = getPlayerTier(entry.best_score);
+                                        const tierName = getTierForScore(currentTitle, entry.best_score);
+                                        const tier = getGameControllerData(tierName);
                                         const isMe = entry.user_id === currentUserId;
+
 
                                         return (
                                             <div key={entry.user_id} className={`grid grid-cols-12 gap-4 p-4 items-center hover:bg-slate-800/50 transition-colors ${isMe ? 'bg-indigo-500/10 hover:bg-indigo-500/20' : ''}`}>
                                                 <div className="col-span-2 md:col-span-1 text-center font-bold text-slate-400 text-lg">
                                                     #{rankNumber}
                                                 </div>
+                                                {/* Busca este bloque dentro del map */}
                                                 <div className="col-span-6 md:col-span-5 flex items-center gap-4">
-                                                    <img src={entry.avatar_url || 'https://via.placeholder.com/150'} className="w-12 h-12 rounded-full object-cover border-2 border-slate-700" alt="Avatar" />
-                                                    <span className={`font-semibold text-base truncate ${isMe ? 'text-indigo-400' : 'text-slate-200'}`}>
-                                                        {entry.username} {isMe && t('ranking.you')}
-                                                    </span>
+                                                    <Link 
+                                                        to={`/usuario/${entry.username}`} 
+                                                        className="flex items-center gap-4 group cursor-pointer"
+                                                    >
+                                                        <UserAvatar 
+                                                            src={entry.avatar_url} 
+                                                            name={entry.username} 
+                                                            size={48} 
+                                                            className={`border-2 transition-colors ${isMe ? 'border-indigo-500' : 'border-slate-700 group-hover:border-indigo-400'}`} 
+                                                        />
+                                                        <span className={`font-semibold text-base truncate transition-colors ${isMe ? 'text-indigo-400' : 'text-slate-200 group-hover:text-indigo-400'}`}>
+                                                            {entry.username} {isMe && t('ranking.you')}
+                                                        </span>
+                                                    </Link>
                                                 </div>
                                                 
 
                                                 <div className="col-span-4 hidden md:flex items-center justify-center gap-3">
-                                                    <img src={tier.icon} alt={tier.name} className="h-10 object-contain drop-shadow-md" title={tier.name} />
+                                                    <img src={tier.image} alt={tier.name} className="h-10 object-contain drop-shadow-md" title={tier.name} />
                                                     <span className={`px-3 py-1 rounded-full text-xs font-bold border border-slate-700/50 bg-slate-950/50 ${tier.color}`}>
                                                         {tier.name}
                                                     </span>
@@ -212,21 +237,19 @@ export default function Ranking() {
            
             {currentUserRank && currentUserRank > 3 && rankingData.length > 0 && (
                 <div className="sticky bottom-6 mt-8 max-w-3xl mx-auto bg-indigo-950/90 backdrop-blur-xl border border-indigo-500/50 rounded-2xl p-4 flex items-center justify-between shadow-[0_0_40px_rgba(99,102,241,0.3)] animate-in slide-in-from-bottom-10 z-50">
-                    <div className="flex items-center gap-5">
-                        <div className="w-14 h-14 rounded-full bg-indigo-500/20 flex items-center justify-center border-2 border-indigo-500/50 text-indigo-300 font-bold text-xl shadow-inner">
-                            #{currentUserRank}
+                <div className="flex items-center gap-5">
+                    <div className="w-14 h-14 rounded-full ...">#{currentUserRank}</div>
+                    <Link to="/cuenta" className="hover:opacity-80 transition-opacity"> 
+                        <p className="text-sm text-indigo-300 font-medium">{t('ranking.yourPosition')}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                            <p className="text-white font-bold text-lg">{t('ranking.keepPlaying')}</p>
                         </div>
-                        <div>
-                            <p className="text-sm text-indigo-300 font-medium">{t('ranking.yourPosition')}</p>
-                            <div className="flex items-center gap-2 mt-0.5">
-                                <p className="text-white font-bold text-lg">{t('ranking.keepPlaying')}</p>
-                            </div>
-                        </div>
-                    </div>
+                    </Link>
+                </div>
                    
                     <div className="hidden md:flex items-center gap-3">
                         <img 
-                            src={getPlayerTier(rankingData[currentUserRank - 1].best_score).icon} 
+                            src={getGameControllerData(getTierForScore(currentTitle, rankingData[currentUserRank - 1].best_score)).image} 
                             alt="Tu Rango" 
                             className="h-12 object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]" 
                         />
