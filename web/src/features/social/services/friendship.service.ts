@@ -41,18 +41,42 @@ export const friendshipService = {
   },
 
   //Aceptar solicitud
-  async acceptFriendRequest(requestId: string) {
-    const { data, error } = await supabase
-      .from('friendships')
-      .update({ status: 'accepted' })
-      .eq('id', requestId)
-      .select()
-      .single();
+// Aceptar solicitud (¡Y crear el chat automáticamente!)
+  async acceptFriendRequest(requestId: string, currentUserId: string, senderId: string) {
+    try {
+      // 1. Cambiamos el estado a 'accepted'
+      const { error: updateError } = await supabase
+        .from('friendships')
+        .update({ status: 'accepted' })
+        .eq('id', requestId);
 
-    if (error) throw error;
-    return data;
+      if (updateError) throw updateError;
+
+      // 2. Creamos la sala de chat para que aparezcan en la barra lateral
+      const { data: newRoom, error: roomError } = await supabase
+        .from('chat_rooms')
+        .insert([{ is_group: false, is_match_room: false }])
+        .select('id')
+        .single();
+
+      if (roomError || !newRoom) throw roomError;
+
+      // 3. Metemos a los dos usuarios en el nuevo chat
+      const { error: participantsError } = await supabase
+        .from('chat_participants')
+        .insert([
+          { room_id: newRoom.id, user_id: currentUserId },
+          { room_id: newRoom.id, user_id: senderId }
+        ]);
+
+      if (participantsError) throw participantsError;
+
+      return true;
+    } catch (error) {
+      console.error("Error al aceptar la solicitud y crear chat:", error);
+      throw error;
+    }
   },
-
   //Rechazar solicitud
   async rejectFriendRequest(requestId: string) {
     const { error } = await supabase

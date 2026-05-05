@@ -168,8 +168,7 @@ useEffect(() => {
     setShowDeleteModal(true);
   };
 
- 
-  const executeRemoveFriend = async () => {
+const executeRemoveFriend = async () => {
     if (!currentUserId || !profile?.id) return;
     
     setDeleteErrorMsg('');
@@ -178,11 +177,11 @@ useEffect(() => {
         if (success) {
             setShowDeleteModal(false);
             setDeleteSuccessMsg("Amigo eliminado correctamente");
-            
-           
+     
             setTimeout(() => {
-                navigate('/cuenta');
-            }, 2000);
+                setDeleteSuccessMsg('');
+            }, 3000);
+            
         } else {
             setDeleteErrorMsg("Hubo un error al eliminar al amigo");
             setShowDeleteModal(false);

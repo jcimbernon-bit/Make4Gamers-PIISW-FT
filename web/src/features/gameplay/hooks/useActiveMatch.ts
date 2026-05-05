@@ -109,10 +109,11 @@ async function fetchActiveMatch(
 
   if (match) return loadMatchWithPlayers(match as RawMatch);
 
-  // Fallback: la partida fue creada por el juego con su propio game_id
+  // Fallback: buscar con game_id para evitar duplicados de otros juegos
   const { data: fallbackMatch, error: fallbackError } = await supabase
     .from("matches")
     .select("*")
+    .eq("game_id", gameId)
     .eq("status", "in_progress")
     .or(orFilter)
     .order("created_at", { ascending: false })

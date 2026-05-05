@@ -45,7 +45,7 @@ import { useReportPlayer } from '../features/account/hooks/useReportPlayer';
 import { useReportGame } from '../features/account/hooks/useReportGame';
 import { useSupportTicket } from '../features/account/hooks/useSupportTicket';
 import type { AccountSection, SupportTab } from '../features/account/types/account-ui.types';
-
+import { friendshipService } from '../features/social/services/friendship.service';
 type Profile = {
   id: string;
   username: string | null;
@@ -147,6 +147,7 @@ export default function Cuenta() {
   });
   const [editingProfile, setEditingProfile] = useState(false);
   const [profileEditError, setProfileEditError] = useState('');
+  const [pendingRequests, setPendingRequests] = useState<any[]>([]);
 
   // Toast notifications
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -341,9 +342,18 @@ export default function Cuenta() {
     });
   }, [buildSessionProfile]);
 
+  const loadPendingRequests = async (userId: string) => {
+    try {
+      const requests = await friendshipService.getPendingRequests(userId);
+      setPendingRequests(requests || []);
+    } catch (error) {
+      console.error("Error cargando solicitudes:", error);
+    }
+  };
+
+
   useEffect(() => {
     const sectionFromState = (location.state as { initialSection?: AccountSection } | null)?.initialSection;
-
     if (sectionFromState && isAccountSection(sectionFromState)) {
       setActiveSection(sectionFromState);
     }
@@ -369,6 +379,8 @@ export default function Cuenta() {
           setEditNameValue(quickProfile.username || '');
 
           void hydrateAccount(user);
+        
+          void loadPendingRequests(user.id); 
         }
       } catch (error) {
         console.error('Error cargando el perfil:', error);
@@ -389,6 +401,8 @@ export default function Cuenta() {
         setEditNameValue(quickProfile.username || '');
 
         void hydrateAccount(session.user);
+      
+        void loadPendingRequests(session.user.id); 
       } else {
         setProfile(null);
       }
@@ -720,6 +734,40 @@ export default function Cuenta() {
     );
   }
 
+
+  const handleAcceptRequest = async (requestId: string, senderId: string) => {
+  
+    const currentUserId = profile?.id; 
+    if (!currentUserId) return;
+
+    try {
+      await friendshipService.acceptFriendRequest(requestId, currentUserId, senderId);
+      
+  
+      await loadPendingRequests(currentUserId);
+      
+    
+      void hydrateAccount({ id: currentUserId } as any);
+      
+    } catch (error) {
+      console.error("Error al aceptar solicitud:", error);
+    }
+  };
+
+  const handleRejectRequest = async (requestId: string) => {
+    const currentUserId = profile?.id; 
+    if (!currentUserId) return;
+
+    try {
+      await friendshipService.rejectFriendRequest(requestId);
+    
+      await loadPendingRequests(currentUserId);
+    } catch (error) {
+      console.error("Error al rechazar solicitud:", error);
+    }
+  };
+  
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-300 py-10 px-4">
       {toast && (
@@ -782,6 +830,9 @@ export default function Cuenta() {
                       friendsSearch={friendsSearch}
                       filteredFriends={filteredFriends}
                       onFriendsSearchChange={setFriendsSearch}
+                      pendingRequests={pendingRequests}
+                      onAcceptRequest={handleAcceptRequest}
+                      onRejectRequest={handleRejectRequest}
                     />
                   </div>
                 )}

@@ -30,6 +30,23 @@ export async function insertMatch(
   client: SupabaseClient,
   input: { gameId: string; userId: string; sessionTimerSeconds?: number | null },
 ): Promise<string> {
+
+  // Prevención de duplicados: buscar si el usuario es player_1 o player_2 en una partida en progreso
+  const { data: existingMatch, error: checkError } = await client
+    .from("matches")
+    .select("id")
+    .eq("game_id", input.gameId)
+    .eq("status", "in_progress")
+    .or(`player_1.eq.${input.userId},player_2.eq.${input.userId}`)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!checkError && existingMatch?.id) {
+    // Ya existe un match en progreso para este usuario y juego
+    return existingMatch.id as string;
+  }
+
   const basePayload = {
     game_id: input.gameId,
     player_1: input.userId,

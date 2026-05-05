@@ -34,8 +34,44 @@ export function updateAccountProfile(
   return updateAccountProfileFromApi(supabase, userId, patch);
 }
 
-export function getAccountRecentGames(userId: string, limit = 5): Promise<AccountRecentGame[]> {
-  return getAccountRecentGamesFromApi(supabase, userId, limit);
+export async function getAccountRecentGames(userId: string, limit = 10): Promise<AccountRecentGame[]> {
+  const { data, error } = await supabase
+    .from('matches')
+    .select(`
+      id,
+      created_at,
+      player_1,
+      player_2,
+      games ( title ),
+      match_results ( final_score_player_1, final_score_player_2, points_awarded )
+    `)
+    .or(`player_1.eq.${userId},player_2.eq.${userId}`) // El usuario puede ser jugador 1 o 2
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error("Error al obtener el historial de partidas:", error);
+    return [];
+  }
+
+  return (data || []).map((match: any) => {
+    const isPlayer1 = match.player_1 === userId;
+    
+    const results = Array.isArray(match.match_results) ? match.match_results[0] : match.match_results;
+    const gameData = Array.isArray(match.games) ? match.games[0] : match.games;
+    
+    let matchScore = 0;
+    if (results) {
+       matchScore = isPlayer1 ? results.final_score_player_1 : results.final_score_player_2;
+    }
+
+    return {
+      id: match.id,
+      score: matchScore || 0,
+      created_at: match.created_at,
+      game: gameData || { title: "Juego Desconocido" }
+    };
+  }) as AccountRecentGame[];
 }
 
 export function getAccountFriends(userId: string): Promise<AccountFriend[]> {
@@ -100,7 +136,7 @@ export async function getAccountHighScores(userId: string) {
     }
   });
 
-  return bestScores.slice(0, 3);
+  return bestScores;
 }
 
 
@@ -132,18 +168,31 @@ export async function getUserDetailedStats(userId: string) {
       .select('score, created_at, game:games(title)')
       .eq('user_id', userId);
 
+
     const { data: matchesDataRaw } = await supabase
       .from('matches')
-      .select('id, status, created_at, game:games(id, title)')
-      .eq('player_1', userId);
+      .select('id, status, created_at, game_id, game:games(id, title)')
+      .or(`player_1.eq.${userId},player_2.eq.${userId}`);
 
     const scoreData: any[] = scoreDataRaw || [];
     const matchesData: any[] = matchesDataRaw || [];
 
+    // Eliminar duplicados: solo una partida por usuario, juego y día
+    const uniqueMatchesMap = new Map();
+    matchesData.forEach(match => {
+      const date = new Date(match.created_at).toISOString().slice(0, 10);
+      const key = `${match.game_id}_${date}`;
+      if (!uniqueMatchesMap.has(key)) {
+        uniqueMatchesMap.set(key, match);
+      }
+    });
+    const uniqueMatches = Array.from(uniqueMatchesMap.values());
+
     const gameMap: Record<string, GameStat> = {};
 
     
-    matchesData.forEach(match => {
+
+    uniqueMatches.forEach(match => {
       const rawTitle = Array.isArray(match.game) ? match.game[0]?.title : match.game?.title;
       const title = rawTitle || 'Desconocido';
 
@@ -180,7 +229,8 @@ export async function getUserDetailedStats(userId: string) {
     const weeklyCounts: Record<string, number> = {};
     const monthlyCounts: Record<string, number> = {};
 
-    matchesData.forEach(match => {
+
+    uniqueMatches.forEach(match => {
       const date = new Date(match.created_at);
       const dayKey = date.toISOString().slice(0, 10);
       const weekKey = getWeekKey(date);
@@ -222,9 +272,9 @@ export async function getUserDetailedStats(userId: string) {
       };
     });
 
-    const historyData = matchesData
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-      .slice(0, 8)
+    const historyData = uniqueMatches
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()) 
+      .slice(0, 8) 
       .map(match => {
         const gameRaw = Array.isArray(match.game) ? match.game[0] : match.game;
         return {
@@ -237,7 +287,7 @@ export async function getUserDetailedStats(userId: string) {
         };
       });
 
-    const totalMatches = matchesData.length; 
+    const totalMatches = uniqueMatches.length; 
     const highestScore = scoreData.length > 0 ? Math.max(...scoreData.map(s => s.score)) : 0;
     const totalUsersQuery = await supabase.from('profiles').select('id', { count: 'exact', head: true });
     const totalUsers = totalUsersQuery.count ?? 0;
