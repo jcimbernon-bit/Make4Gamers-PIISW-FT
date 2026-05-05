@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   AreaChart,
@@ -11,7 +12,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { Activity, Trophy, Gamepad2, Calendar, Users, BarChart3 } from 'lucide-react';
+import { Activity, Trophy, Gamepad2, Calendar, Users, BarChart3, Play } from 'lucide-react';
 import { getUserDetailedStats } from '../../services/account.service';
 
 type StatsData = {
@@ -29,7 +30,14 @@ type StatsData = {
     weekly: Array<{ name: string; count: number }>;
     monthly: Array<{ name: string; count: number }>;
   };
-  historyData: Array<{ date: string; time: string; game: string; status: string }>;
+  historyData: Array<{
+    matchId: string;
+    gameId: string | null;
+    date: string;
+    time: string;
+    game: string;
+    status: string;
+  }>;
 };
 
 type AccountStatsSectionProps = {
@@ -38,9 +46,15 @@ type AccountStatsSectionProps = {
 
 export function AccountStatsSection({ userId }: AccountStatsSectionProps) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<StatsData | null>(null);
   const [selectedPeriod, setSelectedPeriod] = useState<'daily' | 'weekly' | 'monthly'>('daily');
+
+  const handleResumeMatch = (matchId: string, gameId: string | null) => {
+    if (!gameId) return;
+    navigate(`/game/${gameId}/${matchId}`);
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -247,12 +261,32 @@ export function AccountStatsSection({ userId }: AccountStatsSectionProps) {
 
         <div className="space-y-3 max-h-64 overflow-y-auto hide-scrollbar pr-1">
           {stats.historyData.length > 0 ? (
-            stats.historyData.map((item, idx) => (
-              <div key={`${item.game}-${item.date}-${idx}`} className="p-3 bg-slate-900/55 border border-slate-700/40 rounded-xl">
-                <p className="text-white font-medium truncate">{item.game}</p>
-                <p className="text-xs text-slate-400 mt-1">{item.date} · {item.time}</p>
-              </div>
-            ))
+            stats.historyData.map((item, idx) => {
+              const isResumable = item.status === 'in_progress' && !!item.gameId;
+              return (
+                <div
+                  key={`${item.matchId}-${idx}`}
+                  onClick={isResumable ? () => handleResumeMatch(item.matchId, item.gameId) : undefined}
+                  className={`p-3 bg-slate-900/55 border rounded-xl flex items-center justify-between gap-3 transition-all ${
+                    isResumable
+                      ? 'border-emerald-500/40 hover:border-emerald-400 hover:bg-emerald-500/5 cursor-pointer'
+                      : 'border-slate-700/40'
+                  }`}
+                  title={isResumable ? 'Reanudar partida' : undefined}
+                >
+                  <div className="min-w-0">
+                    <p className="text-white font-medium truncate">{item.game}</p>
+                    <p className="text-xs text-slate-400 mt-1">{item.date} · {item.time}</p>
+                  </div>
+                  {isResumable && (
+                    <span className="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-300 text-xs font-semibold border border-emerald-500/30">
+                      <Play size={12} className="fill-emerald-300" />
+                      En curso
+                    </span>
+                  )}
+                </div>
+              );
+            })
           ) : (
             <p className="text-sm text-slate-400">{t('account.stats.emptyActivity')}</p>
           )}

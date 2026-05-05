@@ -18,9 +18,13 @@ import { useLastPlayed } from "../features/gameplay/hooks/useLastPlayed";
 
 
 export default function Gameplay() {
-  const { id } = useParams<{ id: string }>();
+  // Path-based: /game/:id (solo juego) | /game/:id/:matchId (juego + partida)
+  const { id, matchId: routeMatchId } = useParams<{ id: string; matchId?: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  // Disponible para futura implementación: cuando el juego del iframe soporte
+  // recibirlo, se podrá pasar a finalGameUrl para retomar el estado.
+  const resumeMatchId = routeMatchId ?? null;
 
   const [loading, setLoading] = useState(true);
   const [game, setGame] = useState<Game | null>(null);
@@ -36,9 +40,9 @@ export default function Gameplay() {
   const [sessionTimerSecondsRemaining, setSessionTimerSecondsRemaining] = useState<number | null>(null);
   const [startingSession, setStartingSession] = useState<boolean>(false);
 
-  const [iframeMatchId, setIframeMatchId] = useState<string | null>(null);
+  const [iframeMatchId, setIframeMatchId] = useState<string | null>(resumeMatchId);
 
-  const { match, loading: matchLoading } = useActiveMatch(id ?? null, userId);
+  const { match, loading: matchLoading } = useActiveMatch(id ?? null, userId, resumeMatchId);
   const lastPlayedStatus = useLastPlayed(userId, id ?? null);
   const [rulesReminderDismissed, setRulesReminderDismissed] = useState(false);
   const showRulesReminder =
@@ -123,6 +127,20 @@ export default function Gameplay() {
     fetchUser();
   }, []);
 
+  // Auto-arrancar sesión cuando se reanuda una partida (?resumeMatch=...).
+  // El usuario viene de "Mis partidas en curso" y quiere volver al juego
+  // directamente, sin pasar por la pantalla de "Iniciar sesión".
+  useEffect(() => {
+    if (!resumeMatchId || !userId) return;
+    if (timerActive) return;
+
+    setPlayerName(userId);
+    setTimerActive(true);
+    setSessionTimerEndsAtMs(null);
+    setSessionTimerSecondsRemaining(null);
+    setRulesReminderDismissed(true);
+  }, [resumeMatchId, userId, timerActive]);
+
   const formatSeconds = (totalSeconds: number) => {
     const m = Math.floor(totalSeconds / 60);
     const s = totalSeconds % 60;
@@ -158,6 +176,10 @@ export default function Gameplay() {
     const url = new URL(game.game_url);
     url.searchParams.set("player", playerName);
     url.searchParams.set("gameId", currentGameId);
+
+    // TODO (futuro): cuando el juego soporte recuperar partidas, descomentar
+    // para enviar el match_id al iframe y que retome el estado.
+    // if (resumeMatchId) url.searchParams.set("matchId", resumeMatchId);
 
     return url.toString();
   }, [game, id, playerName]);

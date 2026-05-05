@@ -58,6 +58,7 @@ function App() {
             <Route path="/ranking" element={<Ranking />} />
             <Route path="/chat" element={<Chat />} />
             <Route path="/game/:id" element={<GameplayPage />} />
+            <Route path="/game/:id/:matchId" element={<GameplayPage />} />
             <Route path="/juegos/:id/reglas" element={<GameRules />} />
             <Route path="/contacto" element={<Contacto />} />
             
