@@ -29,68 +29,71 @@ export const searchUsers = async (currentUserId: string, searchTerm: string): Pr
 
 export const addFriend = async (currentUserId: string, targetUserId: string): Promise<boolean> => {
     try {
-        const { data: existing } = await supabase
+      
+        const { data: existing, error: checkError } = await supabase
             .from('friendships')
             .select('id')
-            .or(`and(user_a.eq.${currentUserId},user_b.eq.${targetUserId}),and(user_a.eq.${targetUserId},user_b.eq.${currentUserId})`)
-            .single();
+            .or(`and(user_a.eq.${currentUserId},user_b.eq.${targetUserId}),and(user_a.eq.${targetUserId},user_b.eq.${currentUserId})`);
 
-        if (existing) {
-            console.log("Ya sois amigos o hay una solicitud pendiente.");
+        if (checkError) throw checkError;
+
+        if (existing && existing.length > 0) {
+            console.log("Ya hay una relación o solicitud con este usuario.");
             return true; 
         }
 
-        //Se crea solicitud
-        const { error } = await supabase
+        
+        const { error: friendError } = await supabase
             .from('friendships')
             .insert({
                 user_a: currentUserId,
                 user_b: targetUserId,
-                status: 'pending'
+                status: 'pending' 
             });
 
-        if (error) throw error;
+        if (friendError) throw friendError;
+
+      
+
         return true;
 
     } catch (err) {
-        console.error("Error al añadir amigo:", err);
+        console.error("Error al enviar solicitud de amistad:", err);
         return false;
     }
 };
-
 export const removeFriend = async (currentUserId: string, targetUserId: string): Promise<boolean> => {
     try {
-        const { data: data1, error: err1 } = await supabase
-            .from('friendships')
-            .delete()
-            .eq('user_a', currentUserId)
-            .eq('user_b', targetUserId)
-            .select();
+        
+        await supabase.from('friendships').delete().eq('user_a', currentUserId).eq('user_b', targetUserId);
+        await supabase.from('friendships').delete().eq('user_a', targetUserId).eq('user_b', currentUserId);
 
-        const { data: data2, error: err2 } = await supabase
-            .from('friendships')
-            .delete()
-            .eq('user_a', targetUserId)
-            .eq('user_b', currentUserId)
-            .select();
+   
+        const { data: myRooms } = await supabase.from('chat_participants').select('room_id').eq('user_id', currentUserId);
+        const myRoomIds = myRooms?.map(r => r.room_id) || [];
 
-        if (err1 || err2) {
-            console.error("Error en Supabase:", err1 || err2);
-            return false;
+        if (myRoomIds.length > 0) {
+            const { data: sharedRooms } = await supabase.from('chat_participants').select('room_id').in('room_id', myRoomIds).eq('user_id', targetUserId);
+            const sharedRoomIds = sharedRooms?.map(r => r.room_id) || [];
+
+            if (sharedRoomIds.length > 0) {
+
+                const { data: directRooms } = await supabase.from('chat_rooms').select('id').in('id', sharedRoomIds).eq('is_group', false).eq('is_match_room', false);
+                const directRoomIds = directRooms?.map(r => r.id) || [];
+
+                if (directRoomIds.length > 0) {
+               
+                    const { error: exitError } = await supabase.from('chat_participants').delete().in('room_id', directRoomIds).eq('user_id', currentUserId);
+                    
+                    if (exitError) console.error("Error al salir de la sala:", exitError);
+                }
+            }
         }
-
-        console.log("Borrados intento 1:", data1);
-        console.log("Borrados intento 2:", data2);
-
-        if ((!data1 || data1.length === 0) && (!data2 || data2.length === 0)) {
-            alert("Supabase ha bloqueado el borrado. ¡Falta la política de DELETE (RLS)!");
-            return false;
-        }
-
         return true;
-
     } catch (err) {
         console.error("Error al eliminar amigo:", err);
         return false;
     }
 };
+
+
