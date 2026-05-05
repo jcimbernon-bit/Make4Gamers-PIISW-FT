@@ -30,7 +30,7 @@ export function AccountMatchesSection({
   };
 
   return (
-    <section className="h-full bg-slate-900/80 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-8">
+    <section className="h-full bg-slate-900/80 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-8 overflow-y-auto hide-scrollbar">
       {/* Partidas en curso — sección destacada */}
       <div>
         <div className="flex items-center justify-between mb-4">
