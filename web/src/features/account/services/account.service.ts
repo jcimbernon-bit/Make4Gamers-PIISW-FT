@@ -78,6 +78,39 @@ export function getAccountFriends(userId: string): Promise<AccountFriend[]> {
   return getAccountFriendsFromApi(supabase, userId);
 }
 
+export type InProgressMatch = {
+  matchId: string;
+  gameId: string | null;
+  gameTitle: string;
+  createdAt: string;
+  updatedAt: string | null;
+};
+
+export async function getInProgressMatches(userId: string): Promise<InProgressMatch[]> {
+  const { data, error } = await supabase
+    .from('matches')
+    .select('id, created_at, updated_at, game:games(id, title)')
+    .or(`player_1.eq.${userId},player_2.eq.${userId}`)
+    .eq('status', 'in_progress')
+    .order('updated_at', { ascending: false });
+
+  if (error || !data) {
+    console.error('Error obteniendo partidas en curso:', error);
+    return [];
+  }
+
+  return data.map((m: any) => {
+    const gameRaw = Array.isArray(m.game) ? m.game[0] : m.game;
+    return {
+      matchId: m.id,
+      gameId: gameRaw?.id ?? null,
+      gameTitle: gameRaw?.title ?? 'Juego',
+      createdAt: m.created_at,
+      updatedAt: m.updated_at ?? null,
+    };
+  });
+}
+
 export async function getAccountHighScores(userId: string) {
   const { data, error } = await supabase
     .from('scores')
@@ -138,7 +171,7 @@ export async function getUserDetailedStats(userId: string) {
 
     const { data: matchesDataRaw } = await supabase
       .from('matches')
-      .select('created_at, game:games(title), game_id')
+      .select('id, status, created_at, game_id, game:games(id, title)')
       .or(`player_1.eq.${userId},player_2.eq.${userId}`);
 
     const scoreData: any[] = scoreDataRaw || [];
@@ -239,17 +272,18 @@ export async function getUserDetailedStats(userId: string) {
       };
     });
 
-
     const historyData = uniqueMatches
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()) 
       .slice(0, 8) 
       .map(match => {
-        const rawTitle = Array.isArray(match.game) ? match.game[0]?.title : match.game?.title;
+        const gameRaw = Array.isArray(match.game) ? match.game[0] : match.game;
         return {
+          matchId: match.id as string,
+          gameId: (gameRaw?.id as string | undefined) ?? null,
           date: new Date(match.created_at).toLocaleDateString('es-ES'),
           time: new Date(match.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-          game: rawTitle || 'Juego',
-          status: 'Partida Jugada'
+          game: gameRaw?.title || 'Juego',
+          status: (match.status as string) || 'finished'
         };
       });
 

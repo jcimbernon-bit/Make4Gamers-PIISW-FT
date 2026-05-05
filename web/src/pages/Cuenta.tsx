@@ -16,10 +16,12 @@ import {
   getAccountRecentGames,
   updateAccountProfile,
   getAccountHighScores,
+  getInProgressMatches,
   cancelDeveloperRequest,
   createDeveloperRequest,
   getLatestDeveloperRequest,
   type DeveloperRequest,
+  type InProgressMatch,
 } from '../features/account/services/account.service';
 import { AccountSidebar } from '../features/account/components/AccountSidebar';
 import { AccountSupportSection } from '../features/account/components/AccountSupportSection';
@@ -151,6 +153,7 @@ export default function Cuenta() {
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   const [recentGames, setRecentGames] = useState<RecentGame[]>([]);
+  const [inProgressMatches, setInProgressMatches] = useState<InProgressMatch[]>([]);
   const [friends, setFriends] = useState<FriendEntry[]>([]);
   const [friendsSearch, setFriendsSearch] = useState('');
   const [highScores, setHighScores] = useState<HighScoreEntry[]>([]);
@@ -333,6 +336,7 @@ export default function Cuenta() {
       loadHighScores(user.id),
       loadSupportHistory(user.id),
       loadDeveloperRequest(user.id),
+      loadInProgressMatches(user.id),
     ]).catch(err => {
       console.error('Error cargando datos secundarios:', err);
     });
@@ -460,6 +464,16 @@ export default function Cuenta() {
     } catch (error) {
       console.warn('Error o timeout cargando amigos:', error);
       setFriends([]);
+    }
+  };
+
+  const loadInProgressMatches = async (userId: string) => {
+    try {
+      const data = await getInProgressMatches(userId);
+      setInProgressMatches(data);
+    } catch (error) {
+      console.warn('Error cargando partidas en curso:', error);
+      setInProgressMatches([]);
     }
   };
 
@@ -867,6 +881,7 @@ export default function Cuenta() {
                  
                     <AccountMatchesSection
                       recentGames={recentGames}
+                      inProgressMatches={inProgressMatches}
                       formatDate={formatDate}
                     />
                   </div>

@@ -57,6 +57,33 @@ async function loadMatchWithPlayers(matchRow: RawMatch): Promise<ActiveMatchData
   };
 }
 
+async function fetchMatchById(
+  matchId: string,
+  userId: string,
+): Promise<ActiveMatchData | null> {
+  const { data: match, error } = await supabase
+    .from("matches")
+    .select("*")
+    .eq("id", matchId)
+    .maybeSingle();
+
+  if (error) {
+    console.error("[useActiveMatch] Error cargando match por id:", error.message);
+    return null;
+  }
+
+  if (!match) return null;
+
+  // Validar que el usuario pertenece a la partida
+  const playerIds = extractPlayerIds(match as RawMatch);
+  if (!playerIds.includes(userId)) {
+    console.warn("[useActiveMatch] El usuario no pertenece a la partida solicitada");
+    return null;
+  }
+
+  return loadMatchWithPlayers(match as RawMatch);
+}
+
 async function fetchActiveMatch(
   gameId: string,
   userId: string,
@@ -105,21 +132,30 @@ async function fetchActiveMatch(
 export function useActiveMatch(
   gameId: string | null,
   userId: string | null,
+  forcedMatchId: string | null = null,
 ) {
   const [match, setMatch] = useState<ActiveMatchData | null>(null);
   const [loading, setLoading] = useState(false);
   const gameIdRef = useRef(gameId);
   const userIdRef = useRef(userId);
+  const forcedMatchIdRef = useRef(forcedMatchId);
   gameIdRef.current = gameId;
   userIdRef.current = userId;
+  forcedMatchIdRef.current = forcedMatchId;
 
   useEffect(() => {
-    if (!gameId || !userId) return;
+    if (!userId) return;
+    // Si no se fuerza un match concreto, necesitamos gameId para la búsqueda heurística
+    if (!forcedMatchId && !gameId) return;
 
     let isMounted = true;
     setLoading(true);
 
-    fetchActiveMatch(gameId, userId)
+    const loader = forcedMatchId
+      ? fetchMatchById(forcedMatchId, userId)
+      : fetchActiveMatch(gameId as string, userId);
+
+    loader
       .then((data) => {
         if (isMounted) setMatch(data);
       })
@@ -128,8 +164,12 @@ export function useActiveMatch(
         if (isMounted) setLoading(false);
       });
 
+    const channelKey = forcedMatchId
+      ? `active-match-id-${forcedMatchId}`
+      : `active-match-${gameId}-${userId}`;
+
     const channel = supabase
-      .channel(`active-match-${gameId}-${userId}`)
+      .channel(channelKey)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "matches" },
@@ -139,8 +179,14 @@ export function useActiveMatch(
 
           const currentGameId = gameIdRef.current;
           const currentUserId = userIdRef.current;
+          const currentForcedId = forcedMatchIdRef.current;
 
-          if (row.game_id !== currentGameId) return;
+          // Si estamos en modo "match forzado", solo nos importa esa partida
+          if (currentForcedId) {
+            if (row.id !== currentForcedId) return;
+          } else {
+            if (row.game_id !== currentGameId) return;
+          }
 
           const playerIds = extractPlayerIds(row);
           if (!playerIds.includes(currentUserId)) return;
@@ -150,7 +196,10 @@ export function useActiveMatch(
               .then((data) => { if (isMounted) setMatch(data); })
               .catch(console.error);
           } else {
-            if (isMounted) setMatch(null);
+            // En modo forzado mantenemos los datos aunque la partida termine
+            // (para que el usuario vea el último estado). En modo heurístico,
+            // limpiamos como antes.
+            if (!currentForcedId && isMounted) setMatch(null);
           }
         },
       )
@@ -160,7 +209,7 @@ export function useActiveMatch(
       isMounted = false;
       void supabase.removeChannel(channel);
     };
-  }, [gameId, userId]);
+  }, [gameId, userId, forcedMatchId]);
 
   return { match, loading };
 }
