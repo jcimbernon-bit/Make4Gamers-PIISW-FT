@@ -9,79 +9,31 @@ export type ChatMessage = {
   created_at: string;
 };
 
-async function addParticipantSafe(roomId: string, userId: string): Promise<void> {
-  const { error } = await supabase
-    .from("chat_participants")
-    .upsert(
-      { room_id: roomId, user_id: userId },
-      { onConflict: "room_id,user_id", ignoreDuplicates: true },
-    );
-  if (error) console.warn("[useMatchChat] addParticipant:", error.message);
-}
+async function getOrCreateMatchRoom(matchId: string): Promise<string | null> {
+  console.log("[useMatchChat] join_match_chat — matchId:", matchId);
 
-async function getOrCreateMatchRoom(
-  matchId: string,
-  userId: string,
-): Promise<string | null> {
-  console.log("[useMatchChat] getOrCreateMatchRoom — matchId:", matchId, "userId:", userId);
+  // RPC atómica con SECURITY DEFINER en el backend:
+  //  1. Valida que el usuario es jugador del match
+  //  2. Crea la chat_room + match_chats si no existen (idempotente)
+  //  3. Añade al usuario como participante
+  // Esto evita los problemas de RLS al leer match_chats antes de ser
+  // participante (el caso del 3er jugador que no podía entrar al chat).
+  const { data, error } = await supabase.rpc("join_match_chat", {
+    p_match_id: matchId,
+  });
 
-  // 1. ¿Ya existe sala para este match?
-  const { data: existing, error: selectError } = await supabase
-    .from("match_chats")
-    .select("room_id")
-    .eq("match_id", matchId)
-    .maybeSingle();
-
-  if (selectError) {
-    console.error("[useMatchChat] Error leyendo match_chats:", selectError.message);
+  if (error) {
+    console.error("[useMatchChat] Error en join_match_chat:", error.message);
     return null;
   }
 
-  if (existing?.room_id) {
-    console.log("[useMatchChat] Sala existente:", existing.room_id);
-    await addParticipantSafe(existing.room_id, userId);
-    return existing.room_id;
-  }
-
-  // 2. Crear chat_room marcada como sala de partida
-  const { data: newRoom, error: roomError } = await supabase
-    .from("chat_rooms")
-    .insert({ is_group: true, is_match_room: true })
-    .select("id")
-    .single();
-
-  if (roomError || !newRoom) {
-    console.error("[useMatchChat] Error creando chat_room:", roomError?.message);
-    return null;
-  }
-  console.log("[useMatchChat] chat_room creada:", newRoom.id);
-
-  // 3. Vincular con el match
-  const { error: linkError } = await supabase
-    .from("match_chats")
-    .insert({ match_id: matchId, room_id: newRoom.id });
-
-  if (linkError) {
-    console.warn("[useMatchChat] Error vinculando match_chats (posible carrera):", linkError.message);
-
-    // Carrera: otro jugador ganó — usar su sala
-    const { data: winner } = await supabase
-      .from("match_chats")
-      .select("room_id")
-      .eq("match_id", matchId)
-      .maybeSingle();
-
-    if (winner?.room_id) {
-      console.log("[useMatchChat] Usando sala del ganador de carrera:", winner.room_id);
-      await addParticipantSafe(winner.room_id, userId);
-      return winner.room_id;
-    }
+  if (!data) {
+    console.error("[useMatchChat] join_match_chat devolvió vacío");
     return null;
   }
 
-  console.log("[useMatchChat] match_chats vinculado OK");
-  await addParticipantSafe(newRoom.id, userId);
-  return newRoom.id;
+  console.log("[useMatchChat] room_id obtenido:", data);
+  return data as string;
 }
 
 async function fetchMessages(roomId: string): Promise<ChatMessage[]> {
@@ -114,7 +66,7 @@ export function useMatchChat(matchId: string | null, userId: string | null) {
     setLoading(true);
 
     (async () => {
-      const rid = await getOrCreateMatchRoom(matchId, userId);
+      const rid = await getOrCreateMatchRoom(matchId);
       if (!isMounted) return;
 
       if (!rid) {

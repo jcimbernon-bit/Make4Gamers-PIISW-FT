@@ -51,7 +51,6 @@ export default function Gameplay() {
     (lastPlayedStatus === "never" || lastPlayedStatus === "long_ago");
   const matchId = match?.id ?? iframeMatchId;
   const { movements } = useMatchMovements(matchId, userId);
-  const lastMovedPlayerId = movements.at(-1)?.player_id ?? null;
 
   const [extraPlayers, setExtraPlayers] = useState<MatchPlayer[]>([]);
 
@@ -187,9 +186,13 @@ export default function Gameplay() {
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
       const msg = event.data;
-      if (!msg) return;
-      if (msg.type === "MATCH_CREATED" && typeof msg.matchId === "string") {
-        console.log("[GamePlay] match_id recibido del juego:", msg.matchId);
+      if (!msg || typeof msg.matchId !== "string") return;
+
+      // MATCH_CREATED → match recién creado por el juego (player_1, player_2)
+      // MATCH_STARTED → arranque del juego, llega a TODOS los jugadores
+      //                 incluidos los late-joiners (player_3, player_4)
+      if (msg.type === "MATCH_CREATED" || msg.type === "MATCH_STARTED") {
+        console.log(`[GamePlay] ${msg.type} recibido del juego:`, msg.matchId);
         setIframeMatchId(msg.matchId);
       }
     };
@@ -335,7 +338,6 @@ export default function Gameplay() {
             <PlayersBar
               players={allPlayers}
               currentUserId={userId}
-              lastMovedPlayerId={lastMovedPlayerId}
               loading={matchLoading}
             />
           )}
