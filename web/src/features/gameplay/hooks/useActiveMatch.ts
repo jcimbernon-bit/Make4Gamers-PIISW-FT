@@ -88,15 +88,16 @@ async function fetchActiveMatch(
   gameId: string,
   userId: string,
 ): Promise<ActiveMatchData | null> {
-  // Filtramos solo por player_1/player_2 (columnas garantizadas).
-  // select("*") recoge también player_3, player_4… si existen en la tabla.
-  const orFilter = `player_1.eq.${userId},player_2.eq.${userId}`;
+  // Soportamos hasta player_4. Solo buscamos partidas con status="new":
+  // si no hay ninguna recién creada, la página debe arrancar limpia.
+  // Las partidas in_progress se reanudan vía la URL /game/:id/:matchId.
+  const orFilter = `player_1.eq.${userId},player_2.eq.${userId},player_3.eq.${userId},player_4.eq.${userId}`;
 
   const { data: match, error } = await supabase
     .from("matches")
     .select("*")
     .eq("game_id", gameId)
-    .eq("status", "in_progress")
+    .eq("status", "new")
     .or(orFilter)
     .order("created_at", { ascending: false })
     .limit(1)
@@ -109,20 +110,16 @@ async function fetchActiveMatch(
 
   if (match) return loadMatchWithPlayers(match as RawMatch);
 
-  // Fallback: la partida fue creada por el juego con su propio game_id
-  const { data: fallbackMatch, error: fallbackError } = await supabase
+  // Fallback sin restricción de game_id (caso del juego que crea matches
+  // con su propio game_id no coincidente)
+  const { data: fallbackMatch } = await supabase
     .from("matches")
     .select("*")
-    .eq("status", "in_progress")
+    .eq("status", "new")
     .or(orFilter)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
-
-  if (fallbackError) {
-    console.error("[useActiveMatch] Error en fallback:", fallbackError.message);
-    return null;
-  }
 
   if (!fallbackMatch) return null;
   return loadMatchWithPlayers(fallbackMatch as RawMatch);
@@ -138,17 +135,22 @@ export function useActiveMatch(
   const gameIdRef = useRef(gameId);
   const userIdRef = useRef(userId);
   const forcedMatchIdRef = useRef(forcedMatchId);
+  // ID del match que estamos trackeando en modo heurístico. Una vez detectado
+  // (vía fetch inicial o INSERT con status="new"), aceptamos cualquier UPDATE
+  // posterior sobre él — incluso cuando pasa a "in_progress" o "finished" —
+  // para no perder los datos de la partida.
+  const trackedMatchIdRef = useRef<string | null>(null);
   gameIdRef.current = gameId;
   userIdRef.current = userId;
   forcedMatchIdRef.current = forcedMatchId;
 
   useEffect(() => {
     if (!userId) return;
-    // Si no se fuerza un match concreto, necesitamos gameId para la búsqueda heurística
     if (!forcedMatchId && !gameId) return;
 
     let isMounted = true;
     setLoading(true);
+    trackedMatchIdRef.current = null;
 
     const loader = forcedMatchId
       ? fetchMatchById(forcedMatchId, userId)
@@ -156,7 +158,12 @@ export function useActiveMatch(
 
     loader
       .then((data) => {
-        if (isMounted) setMatch(data);
+        if (!isMounted) return;
+        setMatch(data);
+        // En modo heurístico, si el fetch inicial encontró un match, lo trackeamos
+        if (data && !forcedMatchId) {
+          trackedMatchIdRef.current = data.id;
+        }
       })
       .catch(console.error)
       .finally(() => {
@@ -176,29 +183,54 @@ export function useActiveMatch(
           const row = (payload.new ?? payload.old) as RawMatch | null;
           if (!row) return;
 
-          const currentGameId = gameIdRef.current;
           const currentUserId = userIdRef.current;
           const currentForcedId = forcedMatchIdRef.current;
+          const currentGameId = gameIdRef.current;
+          const eventType = payload.eventType;
 
-          // Si estamos en modo "match forzado", solo nos importa esa partida
+          // ===== MODO FORZADO (path /game/:id/:matchId) =====
+          // Solo nos importa el match concreto, en cualquier estado.
           if (currentForcedId) {
             if (row.id !== currentForcedId) return;
-          } else {
-            if (row.game_id !== currentGameId) return;
-          }
-
-          const playerIds = extractPlayerIds(row);
-          if (!playerIds.includes(currentUserId)) return;
-
-          if (row.status === "in_progress") {
+            const playerIds = extractPlayerIds(row);
+            if (!playerIds.includes(currentUserId)) return;
             loadMatchWithPlayers(row)
               .then((data) => { if (isMounted) setMatch(data); })
               .catch(console.error);
-          } else {
-            // En modo forzado mantenemos los datos aunque la partida termine
-            // (para que el usuario vea el último estado). En modo heurístico,
-            // limpiamos como antes.
-            if (!currentForcedId && isMounted) setMatch(null);
+            return;
+          }
+
+          // ===== MODO HEURÍSTICO (path /game/:id) =====
+          if (row.game_id !== currentGameId) return;
+          const playerIds = extractPlayerIds(row);
+          if (!playerIds.includes(currentUserId)) return;
+
+          // INSERT: match recién creado. Si tiene status="new" y soy jugador,
+          // lo empezamos a trackear y cargamos sus datos.
+          if (eventType === "INSERT") {
+            if (row.status !== "new") return;
+            trackedMatchIdRef.current = row.id;
+            loadMatchWithPlayers(row)
+              .then((data) => { if (isMounted) setMatch(data); })
+              .catch(console.error);
+            return;
+          }
+
+          // UPDATE: solo procesamos updates del match que ya estamos trackeando.
+          // Esto preserva los datos cuando el status pasa de "new" → "in_progress"
+          // → "finished" sin perder los datos cargados.
+          if (eventType === "UPDATE") {
+            if (row.id !== trackedMatchIdRef.current) return;
+            loadMatchWithPlayers(row)
+              .then((data) => { if (isMounted) setMatch(data); })
+              .catch(console.error);
+            return;
+          }
+
+          // DELETE: si borran el match que trackeamos, limpiamos
+          if (eventType === "DELETE" && row.id === trackedMatchIdRef.current) {
+            trackedMatchIdRef.current = null;
+            if (isMounted) setMatch(null);
           }
         },
       )

@@ -54,7 +54,7 @@ export async function getInProgressMatches(userId: string): Promise<InProgressMa
   const { data, error } = await supabase
     .from('matches')
     .select('id, created_at, updated_at, game:games(id, title)')
-    .or(`player_1.eq.${userId},player_2.eq.${userId}`)
+    .or(`player_1.eq.${userId},player_2.eq.${userId},player_3.eq.${userId},player_4.eq.${userId}`)
     .eq('status', 'in_progress')
     .order('updated_at', { ascending: false });
 
@@ -135,7 +135,7 @@ export async function getUserDetailedStats(userId: string) {
     const { data: matchesDataRaw } = await supabase
       .from('matches')
       .select('id, status, created_at, game:games(id, title)')
-      .eq('player_1', userId);
+      .or(`player_1.eq.${userId},player_2.eq.${userId},player_3.eq.${userId},player_4.eq.${userId}`);
 
     const scoreData: any[] = scoreDataRaw || [];
     const matchesData: any[] = matchesDataRaw || [];
