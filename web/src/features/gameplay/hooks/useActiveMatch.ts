@@ -110,12 +110,12 @@ async function fetchActiveMatch(
 
   if (match) return loadMatchWithPlayers(match as RawMatch);
 
-  // Fallback sin restricción de game_id (caso del juego que crea matches
-  // con su propio game_id no coincidente)
-  const { data: fallbackMatch } = await supabase
+  // Fallback: buscar con game_id para evitar duplicados de otros juegos
+  const { data: fallbackMatch, error: fallbackError } = await supabase
     .from("matches")
     .select("*")
-    .eq("status", "new")
+    .eq("game_id", gameId)
+    .eq("status", "in_progress")
     .or(orFilter)
     .order("created_at", { ascending: false })
     .limit(1)

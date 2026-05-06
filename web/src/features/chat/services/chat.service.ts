@@ -3,7 +3,17 @@ import { supabase } from '../../../supabase';
 import type { ChatProfile } from '../types/chat.types';
 
 export const getFriendsList = async (currentUserId: string): Promise<ChatProfile[]> => {
-    // 1. Todos los rooms donde participa el usuario
+    
+  
+    const { data: friendships } = await supabase
+        .from('friendships')
+        .select('user_a, user_b')
+        .eq('status', 'accepted')
+        .or(`user_a.eq.${currentUserId},user_b.eq.${currentUserId}`);
+
+    const activeFriendIds = friendships?.map(f => f.user_a === currentUserId ? f.user_b : f.user_a) ?? [];
+   
+
     const { data: participations } = await supabase
         .from('chat_participants')
         .select('room_id')
@@ -12,7 +22,6 @@ export const getFriendsList = async (currentUserId: string): Promise<ChatProfile
     const allRoomIds = participations?.map(p => p.room_id) ?? [];
     if (!allRoomIds.length) return [];
 
-    // 2. Obtener salas que NO son de partida — filtro directo, sin tocar match_chats
     const { data: rooms } = await supabase
         .from('chat_rooms')
         .select('id, is_group')
@@ -26,13 +35,14 @@ export const getFriendsList = async (currentUserId: string): Promise<ChatProfile
 
     const profiles: ChatProfile[] = [];
 
-    // 4. Salas 1-a-1: mostrar el perfil del otro participante
-    if (oneToOneIds.length > 0) {
+
+    if (oneToOneIds.length > 0 && activeFriendIds.length > 0) {
         const { data: others } = await supabase
             .from('chat_participants')
             .select('room_id, user_id')
             .in('room_id', oneToOneIds)
-            .neq('user_id', currentUserId);
+            .neq('user_id', currentUserId)
+            .in('user_id', activeFriendIds);
 
         const otherUserIds = [...new Set(others?.map(p => p.user_id) ?? [])];
 
@@ -50,20 +60,23 @@ export const getFriendsList = async (currentUserId: string): Promise<ChatProfile
                 if (!userId) continue;
                 const profile = userMap.get(userId);
                 if (!profile) continue;
-                profiles.push({
-                    id: profile.id,
-                    room_id: roomId,
-                    username: profile.username || 'Usuario',
-                    avatar_url: profile.avatar_url,
-                    status: profile.status || 'Disponible',
-                    subscription_tier: profile.subscription_tier,
-                    is_group: false
-                });
+
+                if (!profiles.some(p => p.id === profile.id)) {
+                    profiles.push({
+                        id: profile.id,
+                        room_id: roomId,
+                        username: profile.username || 'Usuario',
+                        avatar_url: profile.avatar_url,
+                        status: profile.status || 'Disponible',
+                        subscription_tier: profile.subscription_tier,
+                        is_group: false
+                    });
+                }
             }
         }
     }
-
-    // 5. Salas de grupo: mostrar nombres de miembros
+    
+   
     if (groupIds.length > 0) {
         const { data: allParticipants } = await supabase
             .from('chat_participants')
@@ -94,9 +107,8 @@ export const getFriendsList = async (currentUserId: string): Promise<ChatProfile
     return profiles;
 };
 
-
 export const getOrCreateChatRoom = async (myId: string, friendId: string): Promise<string | null> => {
-  // 1. Buscamos todas las salas donde yo participo
+
   const { data: myParticipations, error: myRoomsError } = await supabase
     .from('chat_participants')
     .select('room_id')
@@ -106,7 +118,7 @@ export const getOrCreateChatRoom = async (myId: string, friendId: string): Promi
 
   const allMyRoomIds = myParticipations.map(r => r.room_id);
 
-  // 2. Filtrar solo salas 1-a-1 (is_group=false) — consulta separada, más fiable que !inner join
+
   let myRoomIds: string[] = [];
   if (allMyRoomIds.length > 0) {
     const { data: normalRooms } = await supabase
@@ -118,7 +130,7 @@ export const getOrCreateChatRoom = async (myId: string, friendId: string): Promi
   }
 
   if (myRoomIds.length > 0) {
-    // 3. Buscamos si mi amigo está en alguna de mis salas 1-a-1
+   
     const { data: sharedRooms } = await supabase
       .from('chat_participants')
       .select('room_id')
@@ -131,7 +143,7 @@ export const getOrCreateChatRoom = async (myId: string, friendId: string): Promi
     }
   }
 
-  // 3. Si no hay sala, creamos una nueva
+
   const { data: newRoom, error: roomError } = await supabase
     .from('chat_rooms')
     .insert([{ is_group: false }])
@@ -140,7 +152,7 @@ export const getOrCreateChatRoom = async (myId: string, friendId: string): Promi
 
   if (roomError || !newRoom) return null;
 
-  // 4. Añadimos a los participantes
+ 
   await supabase.from('chat_participants').insert([
     { room_id: newRoom.id, user_id: myId },
     { room_id: newRoom.id, user_id: friendId }
@@ -195,7 +207,7 @@ export const markMessagesAsRead = async (roomId: string, currentUserId: string) 
 
 export const createGroupChat = async (currentUserId: string, participantIds: string[], groupName: string): Promise<string | null> => {
     try {
-        //Crear la sala
+        
         const { data: newRoom, error: roomError } = await supabase
             .from('chat_rooms')
             .insert([{ is_group: true }])
@@ -204,7 +216,7 @@ export const createGroupChat = async (currentUserId: string, participantIds: str
 
         if (roomError || !newRoom) throw roomError;
 
-        //Añadir participantes
+        
         const participants = [currentUserId, ...participantIds].map(id => ({
             room_id: newRoom.id,
             user_id: id
