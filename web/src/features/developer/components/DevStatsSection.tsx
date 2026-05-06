@@ -14,38 +14,94 @@ type GameStats = {
 export default function DevStatsSection() {
   const { t } = useTranslation();
   const [stats, setStats] = useState<GameStats[]>([]);
+  const [globalUniquePlayers, setGlobalUniquePlayers] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      try {
+        const { data: authData, error: authError } = await supabase.auth.getUser();
+        if (authError || !authData.user) {
+          setStats([]);
+          setGlobalUniquePlayers(0);
+          return;
+        }
+        const userId = authData.user.id;
 
-      const { data: gamesData } = await supabase
-        .from('games')
-        .select('*')
-        .eq('developer_id', user.id)
-        .order('created_at', { ascending: false });
+        const { data: gamesData, error: gamesError } = await supabase
+          .from('games')
+          .select('*')
+          .eq('developer_id', userId)
+          .order('created_at', { ascending: false });
 
-      const games = (gamesData ?? []) as Game[];
+        if (gamesError) {
+          console.error('Error obteniendo juegos del developer:', gamesError);
+          setStats([]);
+          setGlobalUniquePlayers(0);
+          return;
+        }
 
-      const results = await Promise.all(
-        games.map(async (game) => {
-          const { data: scoresData } = await supabase
-            .from('scores')
-            .select('user_id')
-            .eq('game_id', game.id);
+        const games = (gamesData ?? []) as Game[];
+        if (games.length === 0) {
+          setStats([]);
+          setGlobalUniquePlayers(0);
+          return;
+        }
 
-          const rows = scoresData ?? [];
-          const totalPlays = rows.length;
-          const uniquePlayers = new Set(rows.map((r: any) => r.user_id)).size;
+        const gameIds = games.map((g) => g.id);
+        const { data: matchesData, error: matchesError } = await supabase
+          .from('matches')
+          .select('game_id, player_1, player_2, player_3, player_4')
+          .in('game_id', gameIds);
 
-          return { game, totalPlays, uniquePlayers };
-        })
-      );
+        if (matchesError) {
+          console.error('Error obteniendo partidas del developer:', matchesError);
+        }
 
-      setStats(results);
-      setLoading(false);
+        const matches = (matchesData ?? []) as Array<{
+          game_id: string;
+          player_1: string | null;
+          player_2: string | null;
+          player_3: string | null;
+          player_4: string | null;
+        }>;
+
+        const perGame = new Map<string, { plays: number; players: Set<string> }>();
+        for (const game of games) {
+          perGame.set(game.id, { plays: 0, players: new Set<string>() });
+        }
+
+        const globalPlayers = new Set<string>();
+        for (const match of matches) {
+          const entry = perGame.get(match.game_id);
+          if (!entry) continue;
+          entry.plays += 1;
+          for (const player of [match.player_1, match.player_2, match.player_3, match.player_4]) {
+            if (player) {
+              entry.players.add(player);
+              globalPlayers.add(player);
+            }
+          }
+        }
+
+        const results: GameStats[] = games.map((game) => {
+          const entry = perGame.get(game.id);
+          return {
+            game,
+            totalPlays: entry?.plays ?? 0,
+            uniquePlayers: entry?.players.size ?? 0,
+          };
+        });
+
+        setStats(results);
+        setGlobalUniquePlayers(globalPlayers.size);
+      } catch (error) {
+        console.error('Error cargando estadísticas del developer:', error);
+        setStats([]);
+        setGlobalUniquePlayers(0);
+      } finally {
+        setLoading(false);
+      }
     };
     void load();
   }, []);
@@ -61,8 +117,11 @@ export default function DevStatsSection() {
   }
 
   const totalPlays = stats.reduce((acc, s) => acc + s.totalPlays, 0);
-  const totalUnique = stats.reduce((acc, s) => acc + s.uniquePlayers, 0);
-  const avgRating = stats.filter(s => s.game.rating).reduce((acc, s, _, arr) => acc + (s.game.rating ?? 0) / arr.length, 0);
+  const totalUnique = globalUniquePlayers;
+  const ratedGames = stats.filter((s) => s.game.rating != null);
+  const avgRating = ratedGames.length > 0
+    ? ratedGames.reduce((sum, s) => sum + (s.game.rating ?? 0), 0) / ratedGames.length
+    : 0;
 
   const chartData = stats.map(s => ({
     name: s.game.title.length > 14 ? s.game.title.slice(0, 12) + '…' : s.game.title,
