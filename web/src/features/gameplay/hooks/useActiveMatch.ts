@@ -90,7 +90,8 @@ async function fetchActiveMatch(
 ): Promise<ActiveMatchData | null> {
   // Soportamos hasta player_4. Solo buscamos partidas con status="new":
   // si no hay ninguna recién creada, la página debe arrancar limpia.
-  // Las partidas in_progress se reanudan vía la URL /game/:id/:matchId.
+  // Las partidas in_progress se reanudan vía la URL /game/:id/:matchId
+  // o cuando el iframe emite MATCH_STARTED al arrancar.
   const orFilter = `player_1.eq.${userId},player_2.eq.${userId},player_3.eq.${userId},player_4.eq.${userId}`;
 
   const { data: match, error } = await supabase
@@ -108,21 +109,8 @@ async function fetchActiveMatch(
     return null;
   }
 
-  if (match) return loadMatchWithPlayers(match as RawMatch);
-
-  // Fallback: buscar con game_id para evitar duplicados de otros juegos
-  const { data: fallbackMatch, error: fallbackError } = await supabase
-    .from("matches")
-    .select("*")
-    .eq("game_id", gameId)
-    .eq("status", "in_progress")
-    .or(orFilter)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (!fallbackMatch) return null;
-  return loadMatchWithPlayers(fallbackMatch as RawMatch);
+  if (!match) return null;
+  return loadMatchWithPlayers(match as RawMatch);
 }
 
 export function useActiveMatch(
